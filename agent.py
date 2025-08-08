@@ -73,6 +73,22 @@ def agent_node(state: AgentState):
         "iteration_count": new_iteration
     }
 
+def route_tools(state: AgentState):
+    """
+    Route to tools if the agent's response contains tool calls, otherwise route to END.
+    """
+    messages = state.get("messages", [])
+    if not messages:
+        return END
+    
+    # Get the last message (should be the AI message from the agent)
+    ai_message = messages[-1]
+    
+    # Check if the AI message has tool calls
+    if hasattr(ai_message, 'tool_calls') and len(ai_message.tool_calls) > 0:
+        return "tools"
+    return END
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -87,7 +103,9 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    
+    # Add conditional routing from agent
+    workflow.add_conditional_edges("agent", route_tools)
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -147,3 +165,10 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
+
+
+
+
+
+
