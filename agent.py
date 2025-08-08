@@ -73,6 +73,22 @@ def agent_node(state: AgentState):
         "iteration_count": new_iteration
     }
 
+def should_continue(state: AgentState):
+    """
+    Conditional routing function that determines whether to continue to tools or end.
+    
+    Checks if the last message in the agent state contains tool_calls.
+    Returns 'tools' if tool calls are present, otherwise returns '__end__'.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    # Check if the last message has tool calls
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return 'tools'
+    else:
+        return '__end__'
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
