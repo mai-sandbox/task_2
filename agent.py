@@ -73,6 +73,22 @@ def agent_node(state: AgentState):
         "iteration_count": new_iteration
     }
 
+def route_tools(state: AgentState):
+    """
+    Route to tools if the agent's response contains tool calls, otherwise route to END.
+    """
+    messages = state.get("messages", [])
+    if not messages:
+        return END
+    
+    # Get the last message (should be the AI message from the agent)
+    ai_message = messages[-1]
+    
+    # Check if the AI message has tool calls
+    if hasattr(ai_message, 'tool_calls') and len(ai_message.tool_calls) > 0:
+        return "tools"
+    return END
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
