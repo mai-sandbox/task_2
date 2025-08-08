@@ -1,0 +1,20 @@
+{
+  "name": "decision-making-agent",
+  "version": "1.0.0",
+  "description": "LangGraph agent with conditional routing for tool usage",
+  "entry_point": "./agent.py:app",
+  "checkpointer": {
+    "type": "memory"
+  },
+  "agent": {
+    "model": "gpt-4o-mini",
+    "temperature": 0,
+    "tools": ["weather", "math", "search"]
+  },
+  "environment": {
+    "required_vars": [
+      "OPENAI_API_KEY",
+      "TAVILY_API_KEY"
+    ]
+  }
+}
