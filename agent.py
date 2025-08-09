@@ -87,7 +87,13 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    
+    # Add conditional routing from agent to tools or END
+    workflow.add_conditional_edges(
+        "agent",
+        tools_condition,
+        {"tools": "tools", "__end__": END}
+    )
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -147,3 +153,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
