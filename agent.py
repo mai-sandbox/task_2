@@ -111,13 +111,11 @@ def create_agent():
         }
     )
     
-    # Add memory checkpointer
-    checkpointer = InMemorySaver()
-    
-    # Compile the graph
-    app = workflow.compile(checkpointer=checkpointer)
+    # Compile the graph (checkpointer handled by LangGraph API)
+    app = workflow.compile()
     
     return app
 
 app = create_agent()
+
 
