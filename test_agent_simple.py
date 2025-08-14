@@ -163,7 +163,8 @@ def test_simple_query(app):
             "user_intent": "greeting"
         }
         
-        result = app.invoke(initial_state)
+        config = {"configurable": {"thread_id": "test_thread_1"}}
+        result = app.invoke(initial_state, config)
         
         if result and "messages" in result:
             final_message = result["messages"][-1]
@@ -352,3 +353,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
