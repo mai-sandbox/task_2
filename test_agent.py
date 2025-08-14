@@ -10,6 +10,11 @@ from langchain_core.messages import HumanMessage
 def test_agent_import():
     """Test that the agent can be imported successfully"""
     try:
+        # Set dummy API keys to avoid import errors
+        import os
+        os.environ.setdefault('OPENAI_API_KEY', 'dummy-key-for-testing')
+        os.environ.setdefault('TAVILY_API_KEY', 'dummy-key-for-testing')
+        
         from agent import app
         print("✅ Agent imported successfully")
         print(f"   Agent type: {type(app)}")
@@ -184,3 +189,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
