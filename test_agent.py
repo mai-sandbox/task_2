@@ -106,7 +106,8 @@ def test_math_query(app):
             "user_intent": "math_calculation"
         }
         
-        result = app.invoke(initial_state)
+        config = {"configurable": {"thread_id": "test_thread_3"}}
+        result = app.invoke(initial_state, config)
         
         if result and "messages" in result:
             # Look for tool calls in the conversation
@@ -191,6 +192,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
