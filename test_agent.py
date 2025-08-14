@@ -66,7 +66,8 @@ def test_weather_query(app):
             "user_intent": "weather_request"
         }
         
-        result = app.invoke(initial_state)
+        config = {"configurable": {"thread_id": "test_thread_2"}}
+        result = app.invoke(initial_state, config)
         
         if result and "messages" in result:
             # Look for tool calls in the conversation
@@ -190,5 +191,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
