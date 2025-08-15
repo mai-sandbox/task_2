@@ -87,6 +87,17 @@ class OverallState:
         }
     })
     "Schema defining the structured format for person research data"
+    
+    # Reflection workflow fields
+    reflection_result: Any = field(default=None)
+    "Complete reflection evaluation result from the reflection node"
+    
+    reflection_decision: Optional[str] = field(default=None)
+    "Decision from reflection: SATISFACTORY, CONTINUE, or REDO"
+    
+    extracted_data: dict[str, Any] = field(default_factory=dict)
+    "Structured data extracted from research notes according to schema"
+
 
 
 
