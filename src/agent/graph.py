@@ -152,6 +152,47 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Evaluate research completeness and decide whether to continue or stop research."""
+    
+    # Get configuration
+    configurable = Configuration.from_runnable_config(config)
+    max_reflection_steps = configurable.max_reflection_steps
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    
+    # Format completed notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection decisions
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    # Generate reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        info=json.dumps(state.extraction_schema, indent=2),
+        completed_notes=formatted_notes
+    )
+    
+    # Get reflection decision
+    reflection_result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Return the reflection decision (this will be used by the conditional routing)
+    return {
+        "reflection_decision": reflection_result,
+        "completed_notes": []  # Don't add more notes, just pass the decision
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -168,4 +209,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
