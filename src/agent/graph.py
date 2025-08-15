@@ -20,13 +20,8 @@ from agent.prompts import (
 
 # LLMs
 
-rate_limiter = InMemoryRateLimiter(
-    requests_per_second=4,
-    check_every_n_seconds=0.1,
-    max_bucket_size=10,  # Controls the maximum burst size.
-)
 claude_3_5_sonnet = ChatAnthropic(
-    model="claude-3-5-sonnet-latest", temperature=0, rate_limiter=rate_limiter
+    model="claude-3-5-sonnet-latest", temperature=0
 )
 
 # Search
@@ -234,6 +229,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
