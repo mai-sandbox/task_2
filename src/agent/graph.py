@@ -6,7 +6,7 @@ from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
 # Rate limiter import removed - not available in current langchain-core version
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import START, END, StateGraph
 from pydantic import BaseModel, Field
 
 from agent.configuration import Configuration
@@ -229,6 +229,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
