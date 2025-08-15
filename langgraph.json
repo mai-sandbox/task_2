@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    "langchain-anthropic",
+    "langchain-core",
+    "langgraph",
+    "tavily-python",
+    "pydantic"
+  ],
+  "graphs": {
+    "agent": "./agent.py:app"
+  },
+  "env": ".env"
+}
