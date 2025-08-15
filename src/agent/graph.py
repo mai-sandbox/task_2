@@ -130,6 +130,69 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionResult(BaseModel):
+    """Structured result from reflection evaluation."""
+    
+    extracted_data: dict[str, Any] = Field(
+        description="Structured data extracted from research notes according to schema"
+    )
+    completeness_assessment: dict[str, dict[str, str]] = Field(
+        description="Assessment of each required field with status, confidence, and notes"
+    )
+    decision: Literal["SATISFACTORY", "CONTINUE", "REDO"] = Field(
+        description="Decision on whether research is satisfactory, needs continuation, or should be redone"
+    )
+    reasoning: str = Field(
+        description="Detailed reasoning for the decision and recommendations"
+    )
+
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Evaluate research completeness and decide whether to continue, redo, or finish.
+    
+    This function:
+    1. Takes completed research notes
+    2. Converts them to structured format using extraction_schema
+    3. Evaluates completeness against required fields
+    4. Returns reflection results with reasoning for next steps
+    """
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Format completed notes
+    notes_str = format_all_notes(state.completed_notes)
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=notes_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Use structured output for consistent reflection results
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionResult)
+    
+    # Get reflection evaluation
+    reflection_result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Return the reflection results to be used by conditional edges
+    return {
+        "reflection_result": reflection_result,
+        "reflection_decision": reflection_result.decision,
+        "extracted_data": reflection_result.extracted_data
+    }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,3 +209,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
