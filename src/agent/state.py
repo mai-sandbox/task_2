@@ -69,6 +69,10 @@ class OverallState:
         "prior_companies": "List of previous companies the person has worked at"
     })
     "Schema defining the information we want to extract about the person"
+    
+    reflection_decision: Optional[Any] = field(default=None)
+    "Decision from the reflection step about whether to continue research"
+
 
 
 
