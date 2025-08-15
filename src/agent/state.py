@@ -47,3 +47,33 @@ class OverallState:
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
 
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state containing structured information extracted from research."""
+    
+    years_of_experience: Optional[int] = None
+    """Total years of professional experience."""
+    
+    current_company: Optional[str] = None
+    """Name of the current company where the person works."""
+    
+    current_role: Optional[str] = None
+    """Current job title or role."""
+    
+    prior_companies: List[str] = field(default_factory=list)
+    """List of previous companies the person has worked at."""
+    
+    is_satisfactory: bool = False
+    """Whether the research results are satisfactory and complete."""
+    
+    missing_information: List[str] = field(default_factory=list)
+    """List of missing information that should be searched for."""
+    
+    should_continue_research: bool = True
+    """Whether to continue the research process or finish."""
+    
+    reasoning: str = ""
+    """Reasoning for the decision to continue or stop research."""
+
+
