@@ -48,3 +48,49 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with reviewing and structuring research notes about a person's professional background.
+
+Your task is to:
+1. Convert the research notes into a structured format
+2. Evaluate the completeness of the information
+3. Decide whether the research is satisfactory or needs to be redone
+
+<research_notes>
+{completed_notes}
+</research_notes>
+
+<extraction_schema>
+{extraction_schema}
+</extraction_schema>
+
+Please analyze the research notes and extract the following information in a structured format:
+
+**STRUCTURED EXTRACTION:**
+- years_of_experience: [Extract total years of professional experience, or "Unknown" if not found]
+- current_company: [Extract current company name, or "Unknown" if not found]
+- current_role: [Extract current job title/role, or "Unknown" if not found]
+- prior_companies: [Extract list of previous companies, or empty list if none found]
+
+**INFORMATION COMPLETENESS EVALUATION:**
+Evaluate how well the research notes address each key area:
+- Years of experience: [Complete/Partial/Missing - with brief explanation]
+- Current company: [Complete/Partial/Missing - with brief explanation]
+- Current role: [Complete/Partial/Missing - with brief explanation]
+- Prior companies: [Complete/Partial/Missing - with brief explanation]
+
+**DECISION AND REASONING:**
+Based on your evaluation, decide whether the information is satisfactory or if more research is needed.
+
+Decision: [satisfied/needs_more_research]
+
+Reasoning: [Provide detailed reasoning for your decision. If "needs_more_research", specify what information is missing or unclear and what additional searches might help. If "satisfied", explain why the current information is sufficient for the research goals.]
+
+**ADDITIONAL SEARCH SUGGESTIONS (if needs_more_research):**
+If you decided more research is needed, suggest specific search terms or approaches that could help find the missing information:
+- [Specific search suggestion 1]
+- [Specific search suggestion 2]
+- [etc.]
+
+Format your response exactly as shown above with clear sections and structured data."""
+
