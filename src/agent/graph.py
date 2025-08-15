@@ -186,7 +186,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     )
     
     # Get reflection analysis from LLM
-    reflection_result = structured_llm.invoke(reflection_prompt)
+    reflection_result = cast(ReflectionOutput, structured_llm.invoke(reflection_prompt))
     
     # Convert the structured output to state updates
     return {
@@ -234,6 +234,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
