@@ -1,0 +1,18 @@
+# Core LangGraph and LangChain dependencies
+langgraph>=0.2.69
+langchain-anthropic>=0.3.5
+langchain-core>=0.3.0
+
+# Web search and API clients
+tavily-python>=0.6.1
+
+# Data validation and structured output
+pydantic>=2.0.0
+
+# Async support and utilities
+asyncio-compat>=0.1.0
+
+# Optional: Development and testing dependencies
+# Uncomment if needed for development
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0
