@@ -48,3 +48,46 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality assessor evaluating the completeness of information gathered about a person.
+
+Person being researched:
+{person}
+
+Research notes collected so far:
+{research_notes}
+
+Required information schema:
+{extraction_schema}
+
+Your task is to:
+1. Analyze the research notes to extract structured information
+2. Assess the completeness and quality of the information
+3. Identify any critical missing information
+4. Determine if additional research is needed
+
+Focus particularly on these key areas:
+- Years of experience (can you determine or estimate this?)
+- Current company (is this clearly identified?)
+- Current role/title (is this specified?)
+- Prior companies (do we have a reasonable work history?)
+
+Consider the research satisfactory if:
+- You can determine or reasonably estimate years of experience
+- Current company and role are identified
+- At least some work history is available
+- The information appears reliable and consistent
+
+The research needs improvement if:
+- Cannot determine years of experience at all
+- Current employment status is completely unclear
+- No work history information is available
+- Information is contradictory or unreliable
+
+Provide your assessment with:
+1. Extracted structured information (even if incomplete)
+2. List of what's missing
+3. Reasoning for your decision
+4. Clear decision: "satisfactory" or "needs_more_research"
+"""
+
