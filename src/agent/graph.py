@@ -229,7 +229,21 @@ builder.add_node("reflection", reflection)
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
 
+# Add conditional edge from research_person to reflection
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edges from reflection based on decision
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_reflection,
+    {
+        "generate_queries": "generate_queries",  # Continue or redo research
+        END: END  # Research is satisfactory
+    }
+)
+
 # Compile
 graph = builder.compile()
+
 
 
