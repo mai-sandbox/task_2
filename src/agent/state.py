@@ -47,3 +47,27 @@ class OverallState:
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
 
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final structured output from the research process."""
+
+    years_of_experience: Optional[str] = field(default=None)
+    "Total years of professional experience of the person"
+
+    current_company: Optional[str] = field(default=None)
+    "Current company where the person works"
+
+    current_role: Optional[str] = field(default=None)
+    "Current job title/role of the person"
+
+    prior_companies: Optional[list[str]] = field(default_factory=list)
+    "List of previous companies the person has worked at"
+
+    reflection_decision: Optional[Literal["satisfied", "needs_more_research"]] = field(default=None)
+    "Decision from reflection step on whether information is satisfactory or needs more research"
+
+    reflection_reasoning: Optional[str] = field(default=None)
+    "Reasoning behind the reflection decision"
+
+
