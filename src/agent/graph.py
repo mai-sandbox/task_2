@@ -233,7 +233,28 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "__end__"]:
+    """Determine whether to continue research or end based on reflection decision."""
+    reflection_decision = state.get("reflection_decision", "needs_more_research")
+    
+    if reflection_decision == "satisfied":
+        return "__end__"
+    else:
+        return "generate_queries"
+
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        "__end__": END,
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
