@@ -173,6 +173,84 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze research notes and determine if more research is needed.
+    
+    This function:
+    1. Parses completed notes into structured format
+    2. Assesses completeness of information
+    3. Decides whether to continue research based on quality and iteration count
+    """
+    
+    # Get configuration
+    configurable = Configuration.from_runnable_config(config)
+    max_reflection_steps = configurable.max_reflection_steps
+    
+    # Calculate current reflection iteration (based on number of completed notes)
+    reflection_iteration = len(state.completed_notes)
+    
+    # Format all completed notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=formatted_notes,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
+        reflection_iteration=reflection_iteration,
+        max_reflection_steps=max_reflection_steps
+    )
+    
+    # Get structured reflection output
+    reflection_result = cast(
+        ReflectionOutput,
+        structured_llm.invoke(
+            [
+                {
+                    "role": "system",
+                    "content": "You are a research quality assessor. Analyze the research notes and provide a structured assessment.",
+                },
+                {
+                    "role": "user",
+                    "content": reflection_prompt,
+                },
+            ]
+        ),
+    )
+    
+    # Check if we've reached max reflection steps
+    if reflection_iteration >= max_reflection_steps:
+        reflection_result.should_continue_research = False
+        if not reflection_result.reasoning:
+            reflection_result.reasoning = f"Reached maximum reflection iterations ({max_reflection_steps}). Stopping research."
+    
+    # Convert Pydantic model to dict for state update
+    return {
+        "years_of_experience": reflection_result.years_of_experience,
+        "current_company": reflection_result.current_company,
+        "current_role": reflection_result.current_role,
+        "prior_companies": reflection_result.prior_companies,
+        "is_satisfactory": reflection_result.is_satisfactory,
+        "missing_information": reflection_result.missing_information,
+        "should_continue_research": reflection_result.should_continue_research,
+        "reasoning": reflection_result.reasoning,
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -189,4 +267,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
