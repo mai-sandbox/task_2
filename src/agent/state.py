@@ -95,6 +95,13 @@ class OverallState:
     
     reflection_count: int = field(default=0)
     "Number of reflection iterations performed"
+    
+    reflection_decision: Optional[str] = field(default=None)
+    "Decision from reflection: 'satisfactory' or 'needs_more_research'"
+    
+    reflection_reasoning: Optional[str] = field(default=None)
+    "Reasoning behind the reflection decision"
+
 
 
 
