@@ -191,8 +191,11 @@ def test_reflection_output_model():
         except Exception:
             print("✅ Model correctly rejects satisfaction_score > 1.0")
         
-        # Test default values
+        # Test default values for optional fields
         minimal_data = {
+            "years_experience": None,  # Optional field
+            "current_company": None,   # Optional field
+            "role": None,             # Optional field
             "satisfaction_score": 0.5,
             "needs_more_research": True,
             "reasoning": "Test reasoning"
@@ -246,3 +249,4 @@ if __name__ == "__main__":
         if not test2_passed:
             print("❌ ReflectionOutput model test failed")
         sys.exit(1)
+
