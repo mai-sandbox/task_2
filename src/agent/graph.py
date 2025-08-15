@@ -251,6 +251,14 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
         "reasoning": reflection_result.reasoning,
     }
 
+# Define routing function for conditional edge
+def should_continue(state: OverallState) -> Literal["generate_queries", "__end__"]:
+    """Determine whether to continue research or end based on reflection results."""
+    if state.should_continue_research:
+        return "generate_queries"
+    else:
+        return "__end__"
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -264,8 +272,18 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    should_continue,
+    {
+        "generate_queries": "generate_queries",
+        "__end__": END,
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
 
