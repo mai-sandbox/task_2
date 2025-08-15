@@ -232,6 +232,38 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     return output_update
 
 
+def should_continue_research(state: OverallState) -> Literal["reflection", "end"]:
+    """Determine whether to continue to reflection or end after research."""
+    # Always go to reflection after research to evaluate completeness
+    return "reflection"
+
+
+def reflection_routing(state: OverallState) -> Literal["generate_queries", "end"]:
+    """Route based on reflection decision and iteration count.
+    
+    Returns:
+        - "generate_queries" if research needs improvement and haven't exceeded max iterations
+        - "end" if research is satisfactory or max iterations reached
+    """
+    # Check if we have a reflection decision
+    if not state.reflection_decision:
+        return "end"
+    
+    # Check if research is satisfactory
+    if state.reflection_decision == "satisfactory":
+        return "end"
+    
+    # Check if we've exceeded max reflection steps
+    # Note: max_reflection_steps will be accessed from config in runtime
+    # For now, we'll use a default of 2 (will be updated in configuration.py)
+    max_steps = 2  # This will be updated to use config in task 4
+    if state.reflection_count >= max_steps:
+        return "end"
+    
+    # Continue researching if not satisfactory and under iteration limit
+    return "generate_queries"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -248,6 +280,7 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
 
