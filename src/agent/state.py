@@ -47,6 +47,31 @@ class OverallState:
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
 
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": {
+            "description": "Total years of professional work experience",
+            "type": "string",
+            "examples": ["5 years", "10+ years", "2-3 years", "Senior level (8+ years)"]
+        },
+        "current_company": {
+            "description": "Name of the company where the person currently works",
+            "type": "string",
+            "examples": ["Google", "Microsoft", "Startup XYZ", "Self-employed"]
+        },
+        "current_role": {
+            "description": "Current job title or position",
+            "type": "string", 
+            "examples": ["Software Engineer", "Product Manager", "Data Scientist", "CEO"]
+        },
+        "prior_companies": {
+            "description": "List of previous companies the person has worked at",
+            "type": "array",
+            "items": {"type": "string"},
+            "examples": [["Apple", "Facebook"], ["Amazon", "Netflix", "Uber"], ["Various startups"]]
+        }
+    })
+    "Dictionary defining the structured format for person information extraction"
+
 
 @dataclass(kw_only=True)
 class OutputState:
@@ -69,5 +94,6 @@ class OutputState:
 
     reflection_reasoning: Optional[str] = field(default=None)
     "Reasoning behind the reflection decision"
+
 
 
