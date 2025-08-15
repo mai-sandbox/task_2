@@ -1,0 +1,11 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "people_research_agent": "./agent.py:app"
+  },
+  "env": ".env",
+  "dockerfile_lines": [
+    "RUN pip install --no-cache-dir tavily-python langchain-anthropic langchain-core langgraph pydantic"
+  ],
+  "python_version": "3.11"
+}
