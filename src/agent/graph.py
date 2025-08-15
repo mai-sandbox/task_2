@@ -163,6 +163,43 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and decide whether to continue research.
+    
+    This function:
+    1. Takes the completed research notes from the state
+    2. Uses the REFLECTION_PROMPT with structured output to extract key information
+    3. Evaluates research completeness and satisfaction
+    4. Returns structured data with decision on whether to continue research
+    """
+    
+    # Format all completed notes into a single string
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection analysis
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format the reflection prompt with completed notes
+    reflection_prompt = REFLECTION_PROMPT.format(
+        completed_notes=all_notes
+    )
+    
+    # Get reflection analysis from LLM
+    reflection_result = structured_llm.invoke(reflection_prompt)
+    
+    # Convert the structured output to state updates
+    return {
+        "years_experience": reflection_result.years_experience,
+        "current_company": reflection_result.current_company,
+        "role": reflection_result.role,
+        "prior_companies": reflection_result.prior_companies,
+        "satisfaction_score": reflection_result.satisfaction_score,
+        "missing_info": reflection_result.missing_info,
+        "needs_more_research": reflection_result.needs_more_research,
+        "reasoning": reflection_result.reasoning,
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -179,4 +216,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
