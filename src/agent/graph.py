@@ -256,12 +256,29 @@ builder = StateGraph(
 builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
+builder.add_node("extract_output", extract_final_output)
 
+# Define the workflow edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge for reflection decision
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "continue": "generate_queries",  # Loop back to generate new queries
+        "end": "extract_output"          # End research and extract final output
+    }
+)
+
+# Final edge to END
+builder.add_edge("extract_output", END)
 
 # Compile
 graph = builder.compile()
+
 
 
 
