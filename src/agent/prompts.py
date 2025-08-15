@@ -83,4 +83,3 @@ Please provide your analysis in a structured format that includes:
 - Your reasoning for the satisfaction score and research decision
 
 Be thorough in your analysis but decisive in your recommendations. If the core information (years of experience, current company, role, and at least some prior companies) is well-documented, you may recommend ending the research. If key information is missing or unclear, recommend continuing research with specific areas to focus on."""
-

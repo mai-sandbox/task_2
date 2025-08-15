@@ -4,6 +4,7 @@ import json
 
 from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
+
 # Rate limiter import removed - not available in current langchain-core version
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import START, END, StateGraph
@@ -21,10 +22,7 @@ from src.agent.prompts import (
 # LLMs
 
 claude_3_5_sonnet = ChatAnthropic(
-    model_name="claude-3-5-sonnet-latest",
-    temperature=0,
-    timeout=60,
-    stop=[]
+    model_name="claude-3-5-sonnet-latest", temperature=0, timeout=60, stop=[]
 )
 
 # Search
@@ -45,7 +43,7 @@ class Queries(BaseModel):
 
 class ReflectionOutput(BaseModel):
     """Structured output for reflection analysis."""
-    
+
     years_experience: int | None = Field(
         description="Total years of professional experience, or null if not found"
     )
@@ -56,17 +54,16 @@ class ReflectionOutput(BaseModel):
         description="Current job title or position, or null if not found"
     )
     prior_companies: list[str] = Field(
-        description="List of previous companies worked at",
-        default_factory=list
+        description="List of previous companies worked at", default_factory=list
     )
     satisfaction_score: float = Field(
         description="Score from 0.0 to 1.0 indicating research completeness satisfaction",
         ge=0.0,
-        le=1.0
+        le=1.0,
     )
     missing_info: list[str] = Field(
         description="List of information that is still missing or unclear",
-        default_factory=list
+        default_factory=list,
     )
     needs_more_research: bool = Field(
         description="Whether additional research is needed"
@@ -74,7 +71,6 @@ class ReflectionOutput(BaseModel):
     reasoning: str = Field(
         description="Reasoning for the satisfaction score and decision on whether to continue research"
     )
-
 
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
@@ -88,13 +84,13 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
 
     # Format system instructions
     person_str = f"Email: {state.person.email}"
-    if hasattr(state.person, 'name') and state.person.name:
+    if hasattr(state.person, "name") and state.person.name:
         person_str += f" Name: {state.person.name}"
-    if hasattr(state.person, 'linkedin') and state.person.linkedin:
+    if hasattr(state.person, "linkedin") and state.person.linkedin:
         person_str += f" LinkedIn URL: {state.person.linkedin}"
-    if hasattr(state.person, 'role') and state.person.role:
+    if hasattr(state.person, "role") and state.person.role:
         person_str += f" Role: {state.person.role}"
-    if hasattr(state.person, 'company') and state.person.company:
+    if hasattr(state.person, "company") and state.person.company:
         person_str += f" Company: {state.person.company}"
 
     query_instructions = QUERY_WRITER_PROMPT.format(
@@ -123,7 +119,9 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     return {"search_queries": query_list}
 
 
-async def research_person(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+async def research_person(
+    state: OverallState, config: RunnableConfig
+) -> dict[str, Any]:
     """Execute a multi-step web search and information extraction process.
 
     This function performs the following steps:
@@ -169,28 +167,26 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Analyze completed research notes and decide whether to continue research.
-    
+
     This function:
     1. Takes the completed research notes from the state
     2. Uses the REFLECTION_PROMPT with structured output to extract key information
     3. Evaluates research completeness and satisfaction
     4. Returns structured data with decision on whether to continue research
     """
-    
+
     # Format all completed notes into a single string
     all_notes = format_all_notes(state.completed_notes)
-    
+
     # Create structured LLM for reflection analysis
     structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
-    
+
     # Format the reflection prompt with completed notes
-    reflection_prompt = REFLECTION_PROMPT.format(
-        completed_notes=all_notes
-    )
-    
+    reflection_prompt = REFLECTION_PROMPT.format(completed_notes=all_notes)
+
     # Get reflection analysis from LLM
     reflection_result = cast(ReflectionOutput, structured_llm.invoke(reflection_prompt))
-    
+
     # Convert the structured output to state updates
     return {
         "years_experience": reflection_result.years_experience,
@@ -203,6 +199,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
         "reasoning": reflection_result.reasoning,
     }
 
+
 # Add nodes and edges
 builder = StateGraph(OverallState)
 builder.add_node("generate_queries", generate_queries)
@@ -213,13 +210,17 @@ builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
 builder.add_edge("research_person", "reflection")
 
+
 # Add conditional edge from reflection
-def should_continue_research(state: OverallState) -> Literal["generate_queries", "__end__"]:
+def should_continue_research(
+    state: OverallState,
+) -> Literal["generate_queries", "__end__"]:
     """Determine whether to continue research or end based on reflection analysis."""
     if state.needs_more_research:
         return "generate_queries"
     else:
         return "__end__"
+
 
 builder.add_conditional_edges(
     "reflection",
@@ -227,23 +228,8 @@ builder.add_conditional_edges(
     {
         "generate_queries": "generate_queries",
         "__end__": END,
-    }
+    },
 )
 
 # Compile
 graph = builder.compile()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
