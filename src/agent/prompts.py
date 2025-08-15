@@ -48,3 +48,49 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research evaluation specialist tasked with analyzing the completeness of research notes about a person and deciding whether additional research is needed.
+
+Here is the person being researched: {person}
+
+The following schema shows the key information we need to gather:
+
+<schema>
+{info}
+</schema>
+
+Here are the research notes collected so far:
+
+<research_notes>
+{research_notes}
+</research_notes>
+
+Your task is to:
+1. Extract and structure the available information from the research notes
+2. Evaluate the completeness of the research against the required schema
+3. Identify any missing or unclear information
+4. Decide whether to continue research or conclude the process
+5. Provide clear reasoning for your decision
+
+Please analyze the research notes and provide your evaluation in the following format:
+
+**EXTRACTED INFORMATION:**
+- Years of experience: [extracted value or "Not found"]
+- Current company: [extracted value or "Not found"] 
+- Role: [extracted value or "Not found"]
+- Prior companies: [list of companies or "Not found"]
+
+**COMPLETENESS ASSESSMENT:**
+- Rate completeness: [percentage or qualitative assessment]
+- Missing information: [list what's missing]
+- Unclear information: [list what needs clarification]
+
+**DECISION:**
+- Continue research: [YES/NO]
+- Reasoning: [detailed explanation of why you chose to continue or stop]
+
+**ADDITIONAL SEARCH SUGGESTIONS:**
+[If continuing, suggest specific search terms or approaches that might help find the missing information]
+
+Focus on the four key areas: years of experience, current company, role, and prior companies. Be thorough but practical in your assessment."""
+
