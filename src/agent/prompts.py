@@ -48,3 +48,59 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality assessor tasked with analyzing research notes about a person and determining if the information gathered is complete and satisfactory.
+
+You have been researching: {person}
+
+Here are the research notes gathered so far:
+<research_notes>
+{completed_notes}
+</research_notes>
+
+Here is the information schema we're trying to populate:
+<schema>
+{extraction_schema}
+</schema>
+
+Your task is to:
+1. Extract structured information from the research notes
+2. Assess the completeness of the information
+3. Determine if the research is satisfactory
+4. Identify what information is still missing
+5. Decide whether to continue researching
+
+CRITICAL INFORMATION TO EXTRACT:
+- Years of experience: Look for total years in the workforce, career duration, or time since graduation
+- Current company: The company where the person currently works
+- Current role: Their current job title or position
+- Prior companies: List of previous employers (be comprehensive)
+
+ASSESSMENT CRITERIA:
+Consider the research satisfactory if you have found:
+- Clear information about their current company AND role
+- At least some indication of their experience level (even if approximate)
+- At least 2-3 prior companies or a clear career progression
+
+The research is NOT satisfactory if:
+- Current company or role is completely unknown
+- No information about career history or experience
+- The notes are too vague or lack concrete details
+
+MISSING INFORMATION:
+Be specific about what's missing. Instead of "more details needed", specify:
+- "Current job title at [Company]"
+- "Years of experience in [Field]"
+- "Employment history before [Year]"
+- "Specific role responsibilities"
+
+REASONING:
+Provide clear reasoning for your decision:
+- If continuing: Explain what specific information gaps need to be filled
+- If stopping: Explain why the current information is sufficient or why further research won't help
+
+Current reflection iteration: {reflection_iteration}
+Maximum allowed iterations: {max_reflection_steps}
+
+Remember: Be pragmatic. Perfect information isn't always available. If you have the core professional details (current role, company, and some career history), that's often sufficient."""
+
