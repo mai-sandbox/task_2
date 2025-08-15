@@ -165,6 +165,73 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Evaluate the completeness of research and decide whether to continue or finish.
+    
+    This function:
+    1. Analyzes the collected research notes
+    2. Extracts structured information
+    3. Assesses completeness and quality
+    4. Decides whether additional research is needed
+    """
+    
+    # Get configuration
+    configurable = Configuration.from_runnable_config(config)
+    
+    # Format all collected notes
+    research_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information
+    person_dict = state.person.model_dump() if hasattr(state.person, 'model_dump') else dict(state.person)
+    person_str = json.dumps(person_dict, indent=2)
+    
+    # Create structured LLM for reflection decision
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    # Generate reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        research_notes=research_notes,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get reflection decision
+    decision = cast(
+        ReflectionDecision,
+        await structured_llm.ainvoke(
+            [
+                {
+                    "role": "system",
+                    "content": "You are a research quality assessor. Analyze the research notes and make a decision about whether the research is complete.",
+                },
+                {
+                    "role": "user",
+                    "content": reflection_prompt,
+                },
+            ]
+        ),
+    )
+    
+    # Prepare output state with extracted information
+    output_update = {
+        "years_of_experience": decision.years_of_experience,
+        "current_company": decision.current_company,
+        "current_role": decision.current_role,
+        "prior_companies": decision.prior_companies,
+        "research_notes": research_notes,
+        "confidence_score": decision.confidence_score,
+        "missing_information": decision.missing_information,
+        "reflection_count": state.reflection_count + 1,
+    }
+    
+    # Store the decision for routing
+    output_update["reflection_decision"] = decision.decision
+    output_update["reflection_reasoning"] = decision.reasoning
+    
+    return output_update
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -181,5 +248,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
