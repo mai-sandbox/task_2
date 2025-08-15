@@ -195,19 +195,20 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
 
 def should_continue_reflection(state: OverallState) -> str:
     """Determine the next step based on reflection results."""
-    if not hasattr(state, 'reflection_decision') or state.reflection_decision is None:
-        # If no reflection decision yet, go to reflection
-        return "reflection"
+    # Get the reflection decision from the state
+    reflection_decision = getattr(state, 'reflection_decision', None)
     
-    decision = state.reflection_decision
+    if reflection_decision is None:
+        # If no reflection decision yet, this shouldn't happen in normal flow
+        return END
     
-    if decision == "SATISFACTORY":
+    if reflection_decision == "SATISFACTORY":
         # Research is complete, end the workflow
         return END
-    elif decision == "CONTINUE":
+    elif reflection_decision == "CONTINUE":
         # Need more targeted research, generate new queries
         return "generate_queries"
-    elif decision == "REDO":
+    elif reflection_decision == "REDO":
         # Research quality is poor, start over with new queries
         return "generate_queries"
     else:
@@ -244,6 +245,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
