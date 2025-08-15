@@ -46,6 +46,17 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+    
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Total years of professional experience",
+        "current_company": "Name of the current company where the person works",
+        "current_role": "Current job title or position",
+        "prior_companies": "List of previous companies the person has worked at",
+        "education": "Educational background and qualifications",
+        "skills": "Key skills and expertise areas",
+        "notable_achievements": "Notable projects, achievements, or recognitions"
+    })
+    "Schema defining the structured information to extract about the person"
 
 
 @dataclass(kw_only=True)
@@ -75,5 +86,6 @@ class OutputState:
     
     reasoning: str = ""
     """Reasoning for the decision to continue or stop research."""
+
 
 
