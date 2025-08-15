@@ -193,6 +193,28 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     }
 
 
+def should_continue_reflection(state: OverallState) -> str:
+    """Determine the next step based on reflection results."""
+    if not hasattr(state, 'reflection_decision') or state.reflection_decision is None:
+        # If no reflection decision yet, go to reflection
+        return "reflection"
+    
+    decision = state.reflection_decision
+    
+    if decision == "SATISFACTORY":
+        # Research is complete, end the workflow
+        return END
+    elif decision == "CONTINUE":
+        # Need more targeted research, generate new queries
+        return "generate_queries"
+    elif decision == "REDO":
+        # Research quality is poor, start over with new queries
+        return "generate_queries"
+    else:
+        # Default fallback
+        return END
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -209,4 +231,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
