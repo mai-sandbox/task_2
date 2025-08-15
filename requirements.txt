@@ -9,5 +9,6 @@ tavily-python>=0.5.0
 # Data validation and structured output
 pydantic>=2.0.0
 
-# Additional dependencies for async operations and rate limiting
-asyncio-throttle>=1.0.0
+# Python standard library dependencies (included for completeness)
+# asyncio, json, operator, dataclasses, typing, os are part of Python standard library
+
