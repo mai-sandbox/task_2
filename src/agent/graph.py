@@ -193,6 +193,59 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
         "completed_notes": []  # Don't add more notes, just pass the decision
     }
 
+
+def should_continue_research(state: OverallState) -> Literal["continue", "end"]:
+    """Conditional routing function to determine if research should continue or end."""
+    
+    # Check if we have a reflection decision
+    if hasattr(state, 'reflection_decision') and state.reflection_decision:
+        reflection_decision = state.reflection_decision
+        
+        # If the reflection decision says to continue research, route to generate_queries
+        if reflection_decision.continue_research:
+            return "continue"
+        else:
+            return "end"
+    
+    # Default to ending if no reflection decision is available
+    return "end"
+
+
+def extract_final_output(state: OverallState) -> dict[str, Any]:
+    """Extract structured output from research notes."""
+    
+    # Format all completed notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for final extraction
+    structured_llm = claude_3_5_sonnet.with_structured_output(OutputState)
+    
+    # Create extraction prompt
+    extraction_prompt = f"""Based on the following research notes, extract the structured information about this person:
+
+Person: {state.person.email}
+
+Research Notes:
+{formatted_notes}
+
+Extract the following information:
+- years_experience: Total years of professional experience (as integer)
+- current_company: Current company name
+- current_role: Current job title/role
+- prior_companies: List of previous companies worked at
+
+If information is not available, use null for optional fields or empty list for prior_companies."""
+    
+    # Extract structured information
+    extracted_info = structured_llm.invoke(extraction_prompt)
+    
+    return {
+        "years_experience": extracted_info.years_experience,
+        "current_company": extracted_info.current_company,
+        "current_role": extracted_info.current_role,
+        "prior_companies": extracted_info.prior_companies
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -209,5 +262,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
