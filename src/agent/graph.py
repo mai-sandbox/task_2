@@ -130,6 +130,96 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and decide whether to continue or redo research.
+    
+    This function:
+    1. Takes completed_notes from state
+    2. Uses Claude with REFLECTION_PROMPT to convert notes to structured format
+    3. Evaluates information satisfaction for years of experience, current company, role, prior companies
+    4. Returns decision on whether to redo research or complete the process
+    """
+    
+    # Format all completed notes into a single string
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Create reflection prompt with notes and extraction schema
+    reflection_prompt = REFLECTION_PROMPT.format(
+        completed_notes=all_notes,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get reflection analysis from Claude
+    reflection_result = await claude_3_5_sonnet.ainvoke(reflection_prompt)
+    reflection_content = str(reflection_result.content)
+    
+    # Parse the reflection response to extract structured information and decision
+    # Look for the decision line in the response
+    decision = "needs_more_research"  # Default to more research if parsing fails
+    reasoning = "Unable to parse reflection response"
+    
+    # Extract structured information
+    years_of_experience = "Unknown"
+    current_company = "Unknown" 
+    current_role = "Unknown"
+    prior_companies = []
+    
+    try:
+        # Parse the reflection response
+        lines = reflection_content.split('\n')
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            
+            # Extract structured information
+            if line.startswith('- years_of_experience:'):
+                years_of_experience = line.split(':', 1)[1].strip().strip('[]')
+            elif line.startswith('- current_company:'):
+                current_company = line.split(':', 1)[1].strip().strip('[]')
+            elif line.startswith('- current_role:'):
+                current_role = line.split(':', 1)[1].strip().strip('[]')
+            elif line.startswith('- prior_companies:'):
+                companies_str = line.split(':', 1)[1].strip().strip('[]')
+                if companies_str and companies_str != "Unknown" and companies_str != "empty list":
+                    # Simple parsing - split by comma and clean up
+                    prior_companies = [c.strip().strip('"\'') for c in companies_str.split(',') if c.strip()]
+            
+            # Extract decision
+            elif line.startswith('Decision:'):
+                decision_text = line.split(':', 1)[1].strip().strip('[]')
+                if 'satisfied' in decision_text.lower():
+                    decision = "satisfied"
+                elif 'needs_more_research' in decision_text.lower():
+                    decision = "needs_more_research"
+            
+            # Extract reasoning
+            elif line.startswith('Reasoning:'):
+                # Get reasoning from this line and potentially next lines
+                reasoning_parts = [line.split(':', 1)[1].strip()]
+                # Look for continuation lines
+                for j in range(i + 1, len(lines)):
+                    next_line = lines[j].strip()
+                    if next_line.startswith('**') or next_line.startswith('Decision:') or not next_line:
+                        break
+                    reasoning_parts.append(next_line)
+                reasoning = ' '.join(reasoning_parts)
+    
+    except Exception as e:
+        print(f"Warning: Error parsing reflection response: {e}")
+        # Keep default values
+    
+    # Return state updates based on decision
+    return {
+        "years_of_experience": years_of_experience,
+        "current_company": current_company,
+        "current_role": current_role,
+        "prior_companies": prior_companies,
+        "reflection_decision": decision,
+        "reflection_reasoning": reasoning
+    }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,3 +236,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
