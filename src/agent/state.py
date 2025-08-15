@@ -71,6 +71,13 @@ class OverallState:
         "prior_companies": "List of previous companies the person has worked at"
     })
     "Schema defining the information to extract during research"
+    
+    continue_research: bool = field(default=True)
+    "Whether to continue research based on reflection evaluation"
+    
+    reflection_reasoning: str = field(default=None)
+    "Reasoning from the reflection step about research completeness"
+
 
 
 
