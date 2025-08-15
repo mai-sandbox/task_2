@@ -21,7 +21,7 @@ from src.agent.prompts import (
 # LLMs
 
 claude_3_5_sonnet = ChatAnthropic(
-    model="claude-3-5-sonnet-latest", temperature=0
+    model_name="claude-3-5-sonnet-latest", temperature=0
 )
 
 # Search
@@ -234,6 +234,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
