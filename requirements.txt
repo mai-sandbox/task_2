@@ -1,0 +1,13 @@
+# Core LangGraph and LangChain dependencies
+langgraph>=0.2.0
+langchain-core>=0.3.0
+langchain-anthropic>=0.2.0
+
+# Search and research dependencies
+tavily-python>=0.5.0
+
+# Data validation and structured output
+pydantic>=2.0.0
+
+# Additional dependencies for async operations and rate limiting
+asyncio-throttle>=1.0.0
