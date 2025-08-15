@@ -48,3 +48,39 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with evaluating the completeness of research notes about a person and extracting structured information.
+
+Here are the research notes you need to analyze:
+
+<research_notes>
+{completed_notes}
+</research_notes>
+
+Your task is to:
+
+1. **Extract structured information** about the person, focusing on these key areas:
+   - Years of experience: Total years of professional work experience
+   - Current company: The organization they currently work for
+   - Role: Their current job title or position
+   - Prior companies: List of previous companies they have worked at
+
+2. **Evaluate research completeness** by analyzing:
+   - How much of the key information is clearly documented
+   - What important details might be missing or unclear
+   - Whether the information is sufficient for a comprehensive profile
+
+3. **Make a decision** about whether additional research is needed based on:
+   - Completeness of the four key information areas
+   - Quality and reliability of the information found
+   - Whether there are significant gaps that would benefit from more research
+
+Please provide your analysis in a structured format that includes:
+- The extracted information for each key area
+- A satisfaction score (0.0 to 1.0) indicating how complete the research is
+- A list of any missing or unclear information
+- A clear decision on whether more research is needed
+- Your reasoning for the satisfaction score and research decision
+
+Be thorough in your analysis but decisive in your recommendations. If the core information (years of experience, current company, role, and at least some prior companies) is well-documented, you may recommend ending the research. If key information is missing or unclear, recommend continuing research with specific areas to focus on."""
+
