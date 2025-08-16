@@ -254,9 +254,9 @@ def reflection_routing(state: OverallState) -> Literal["generate_queries", "end"
         return "end"
     
     # Check if we've exceeded max reflection steps
-    # Note: max_reflection_steps will be accessed from config in runtime
-    # For now, we'll use a default of 2 (will be updated in configuration.py)
-    max_steps = 2  # This will be updated to use config in task 4
+    # Using a default of 2 which will be configured in configuration.py
+    # The actual value will be set via Configuration class
+    max_steps = getattr(state, 'max_reflection_steps', 2)
     if state.reflection_count >= max_steps:
         return "end"
     
@@ -296,6 +296,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
