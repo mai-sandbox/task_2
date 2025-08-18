@@ -187,6 +187,18 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     return {"reflection_result": reflection_result}
 
 
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "end"]:
+    """Determine whether to continue research or end based on reflection results.
+    
+    This routing function checks the reflection_result to decide:
+    - If needs_more_research is True: Route back to generate_queries for another iteration
+    - If needs_more_research is False: Route to END to complete the workflow
+    """
+    if state.reflection_result and state.reflection_result.needs_more_research:
+        return "generate_queries"
+    return "end"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -203,5 +215,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
