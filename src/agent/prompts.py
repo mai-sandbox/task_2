@@ -48,3 +48,58 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are analyzing research notes about a person to extract structured information and evaluate completeness.
+
+Person being researched: {person}
+
+Research notes collected so far:
+<notes>
+{notes}
+</notes>
+
+Information schema we need to extract:
+<schema>
+{extraction_schema}
+</schema>
+
+User's additional context:
+<user_notes>
+{user_notes}
+</user_notes>
+
+Your task is to:
+
+1. **Extract Structured Information**: Carefully review the notes and extract:
+   - Years of experience: Look for total years in their career, time in current role, or career start dates
+   - Current company: Their most recent or current employer
+   - Role: Their current job title or position
+   - Prior companies: List all previous companies mentioned in their work history
+
+2. **Evaluate Completeness**: Assess whether the gathered information is satisfactory:
+   - Is the years of experience clearly stated or can it be reasonably inferred?
+   - Do we have their current company and role?
+   - Do we have a reasonable understanding of their career progression?
+   - Are there significant gaps in the work history?
+
+3. **Decide Next Steps**: Based on your evaluation:
+   - Choose "stop" if:
+     * We have clear information about their current role and company
+     * We have at least a general sense of their experience level
+     * The core information requested is sufficiently covered
+   - Choose "continue" if:
+     * Critical information is completely missing (e.g., no current company found)
+     * The information is too vague or contradictory
+     * We haven't found enough about their professional background
+
+4. **Provide Clear Reasoning**: Explain your decision with specific details:
+   - What information was successfully extracted
+   - What information is missing or unclear
+   - Why you decided to continue or stop the research
+
+Remember: 
+- If information is not found in the notes, mark it as "Not found" rather than guessing
+- Focus on professional/work experience information
+- Be thorough but practical - perfect information isn't always available
+- Consider the user's specific needs mentioned in their notes"""
+
