@@ -40,6 +40,8 @@ tavily_async_client = AsyncTavilyClient()
 
 
 class Queries(BaseModel):
+    """Pydantic model for structured query generation output."""
+    
     queries: list[str] = Field(
         description="List of search queries.",
     )
@@ -257,6 +259,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
