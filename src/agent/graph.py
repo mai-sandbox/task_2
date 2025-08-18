@@ -206,6 +206,25 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
         }
 
 
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
+    """Conditional edge function that determines whether to continue research or end.
+    
+    Routes based on the reflection analysis:
+    - If should_continue_research is True: route back to "generate_queries" for another research iteration
+    - If should_continue_research is False: route to "END" to complete the workflow
+    
+    Args:
+        state: The current OverallState containing reflection analysis results
+        
+    Returns:
+        "generate_queries" if more research is needed, "END" if research is complete
+    """
+    if state.should_continue_research:
+        return "generate_queries"
+    else:
+        return "END"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -217,9 +236,22 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+# Define the workflow edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        "END": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
