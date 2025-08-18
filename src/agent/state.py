@@ -57,6 +57,21 @@ class OverallState:
     
     reflection_decision: Optional[str] = field(default=None)
     "Decision from reflection: 'continue' to research more or 'stop' if satisfactory"
+    
+    years_experience: Optional[str] = field(default=None)
+    "Extracted years of experience from reflection"
+    
+    current_company: Optional[str] = field(default=None)
+    "Extracted current company from reflection"
+    
+    role: Optional[str] = field(default=None)
+    "Extracted role from reflection"
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "Extracted list of prior companies from reflection"
+    
+    reflection_reasoning: Optional[str] = field(default=None)
+    "Reasoning from reflection about information completeness"
 
 
 @dataclass(kw_only=True)
@@ -80,6 +95,7 @@ class OutputState:
     
     reflection_reasoning: Optional[str] = field(default=None)
     "Reasoning from the reflection step about information completeness"
+
 
 
 
