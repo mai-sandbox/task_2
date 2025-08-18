@@ -79,7 +79,7 @@ def test_state_classes():
         from src.agent.state import Person, InputState, OutputState, OverallState
         
         # Test Person class
-        person = Person(name="Test Person")
+        person = Person(name="Test Person", email="test@example.com")
         print(f"  ✓ Person class instantiated: {person.name}")
         
         # Test InputState
@@ -180,4 +180,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
