@@ -91,6 +91,19 @@ class OverallState:
         }
     })
     "Schema defining the structure for information extraction"
+    
+    research_complete: bool = field(default=False)
+    "Flag indicating whether the research process is complete"
+    
+    structured_info: Optional[dict[str, Any]] = field(default=None)
+    "Structured information extracted from research"
+    
+    missing_info: Optional[list[str]] = field(default=None)
+    "List of missing or unclear information"
+    
+    reflection_reasoning: Optional[str] = field(default=None)
+    "Reasoning from the reflection step about research completeness"
+
 
 
 
