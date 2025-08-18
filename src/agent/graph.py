@@ -40,6 +40,27 @@ class Queries(BaseModel):
     )
 
 
+class ReflectionOutput(BaseModel):
+    """Output from the reflection step containing structured info and decision."""
+    
+    person_info: PersonInfo = Field(
+        description="Structured information extracted from research notes"
+    )
+    
+    completeness_assessment: str = Field(
+        description="Assessment of how complete the gathered information is"
+    )
+    
+    continue_research: bool = Field(
+        description="Whether more research is needed (True) or information is satisfactory (False)"
+    )
+    
+    missing_information: list[str] = Field(
+        default_factory=list,
+        description="List of missing information that should be searched for"
+    )
+
+
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Generate search queries based on the user input and extraction schema."""
@@ -146,4 +167,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
