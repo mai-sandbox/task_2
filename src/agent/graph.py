@@ -1,22 +1,22 @@
 import asyncio
-from typing import cast, Any, Literal
 import json
+from typing import Any, Literal, Optional, cast
 
-from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph import END, START, StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import InputState, OutputState, OverallState
+from agent.utils import deduplicate_and_format_sources, format_all_notes
 
 # LLMs
 
@@ -94,7 +94,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -130,6 +129,127 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionOutput(BaseModel):
+    """Structured output for the reflection step."""
+    
+    # Extracted information
+    years_of_experience: Optional[int] = Field(
+        default=None,
+        description="Total years of professional experience"
+    )
+    current_company: Optional[str] = Field(
+        default=None,
+        description="Current company where the person works"
+    )
+    role: Optional[str] = Field(
+        default=None,
+        description="Current role or position"
+    )
+    prior_companies: list[str] = Field(
+        default_factory=list,
+        description="List of previous companies"
+    )
+    
+    # Evaluation results
+    is_satisfactory: bool = Field(
+        description="Whether the gathered information is satisfactory"
+    )
+    missing_info: list[str] = Field(
+        default_factory=list,
+        description="List of missing information that should be searched"
+    )
+    should_redo: bool = Field(
+        description="Whether the research process should be redone"
+    )
+    reasoning: str = Field(
+        description="Reasoning for the reflection decision"
+    )
+
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research notes and determine if more research is needed.
+    
+    This function:
+    1. Converts research notes to structured format
+    2. Evaluates information completeness
+    3. Decides whether to continue or redo research
+    """
+    # Format all notes into a single string
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        notes=all_notes,
+        schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get structured reflection output
+    reflection_result = await structured_llm.ainvoke(
+        [
+            {
+                "role": "system",
+                "content": "You are a research quality evaluator. Analyze the research notes and provide a structured evaluation."
+            },
+            {
+                "role": "user",
+                "content": reflection_prompt
+            }
+        ]
+    )
+    
+    # Prepare the output state update
+    output_update = {
+        "years_of_experience": reflection_result.years_of_experience,
+        "current_company": reflection_result.current_company,
+        "role": reflection_result.role,
+        "prior_companies": reflection_result.prior_companies,
+        "is_satisfactory": reflection_result.is_satisfactory,
+        "missing_info": reflection_result.missing_info,
+        "should_redo": reflection_result.should_redo,
+        "reasoning": reflection_result.reasoning,
+        "structured_notes": {
+            "years_of_experience": reflection_result.years_of_experience,
+            "current_company": reflection_result.current_company,
+            "role": reflection_result.role,
+            "prior_companies": reflection_result.prior_companies,
+            "person_email": state.person.email,
+            "person_name": state.person.name,
+            "person_linkedin": state.person.linkedin
+        }
+    }
+    
+    return output_update
+
+
+# Define the conditional function for routing after reflection
+def should_continue(state: dict[str, Any]) -> Literal["generate_queries", "end"]:
+    """Determine whether to continue research or end based on reflection results.
+    
+    The reflection node returns should_redo flag to indicate if more research is needed.
+    """
+    # Check if we should redo the research based on the reflection output
+    if state.get('should_redo', False):
+        return "generate_queries"
+    # End if the information is satisfactory
+    return "end"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -141,8 +261,26 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+# Define the workflow edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+builder.add_conditional_edges(
+    "reflection",
+    should_continue,
+    {
+        "generate_queries": "generate_queries",
+        "end": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
+
+
+
+
+
