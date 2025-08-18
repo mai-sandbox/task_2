@@ -48,3 +48,46 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with reviewing and extracting structured information from research notes about a person's professional background.
+
+You have collected the following research notes about {person}:
+
+<research_notes>
+{completed_notes}
+</research_notes>
+
+Your task is to:
+
+1. **Extract Structured Information**
+   Analyze the notes and extract the following key information:
+   - Years of experience: Calculate or estimate total years of professional experience
+   - Current company: Identify where the person currently works
+   - Current role: Determine their current job title or position
+   - Prior companies: List all previous companies they've worked at
+
+2. **Assess Information Completeness**
+   Evaluate whether the research has gathered sufficient information:
+   - Is the years of experience clearly determinable or reasonably estimable?
+   - Is the current company and role clearly identified?
+   - Do we have a comprehensive list of prior companies?
+   - Are there any critical gaps in the professional history?
+
+3. **Determine Next Steps**
+   Based on your assessment, decide whether:
+   - The research is SATISFACTORY and contains enough information to meet requirements
+   - More research is NEEDED to fill critical gaps
+
+4. **Provide Reasoning**
+   Explain your decision with specific details:
+   - If satisfactory: What key information was successfully extracted
+   - If more research needed: What specific information is missing and what should be searched for
+
+Consider these factors when making your decision:
+- Professional timeline continuity (are there unexplained gaps?)
+- Clarity of current position (is it definitively stated or assumed?)
+- Completeness of work history (do we have most major positions?)
+- Quality of information (is it from reliable sources like LinkedIn, company websites?)
+
+Remember: It's better to have accurate, well-sourced information than to guess. If critical information is genuinely missing or unclear, recommend additional research with specific search suggestions."""
+
