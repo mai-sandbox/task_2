@@ -188,7 +188,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
 def should_continue(state: OverallState) -> Literal["generate_queries", "end"]:
     """Determine whether to continue research or finish based on reflection output."""
     # Check if we should continue researching
-    if state.get("should_continue_research", False):
+    if hasattr(state, "should_continue_research") and state.should_continue_research:
         return "generate_queries"
     else:
         return "end"
@@ -220,5 +220,6 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
