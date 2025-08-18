@@ -240,12 +240,15 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
 
 
 # Define the conditional function for routing after reflection
-def should_continue(state: OverallState) -> Literal["generate_queries", "end"]:
-    """Determine whether to continue research or end based on reflection results."""
-    # Check if we should redo the research
-    if hasattr(state, 'should_redo') and state.should_redo:
+def should_continue(state: dict[str, Any]) -> Literal["generate_queries", "end"]:
+    """Determine whether to continue research or end based on reflection results.
+    
+    The reflection node returns should_redo flag to indicate if more research is needed.
+    """
+    # Check if we should redo the research based on the reflection output
+    if state.get('should_redo', False):
         return "generate_queries"
-    # Default to end if not explicitly told to redo
+    # End if the information is satisfactory
     return "end"
 
 
@@ -277,6 +280,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
