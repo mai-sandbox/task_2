@@ -72,4 +72,28 @@ class OverallState:
     })
     "Schema defining what information to extract from research notes."
 
+    # Reflection output fields
+    years_of_experience: Optional[int] = field(default=None)
+    "Extracted years of professional experience."
+
+    current_company: Optional[str] = field(default=None)
+    "Extracted current company."
+
+    role: Optional[str] = field(default=None)
+    "Extracted current role."
+
+    prior_companies: list[str] = field(default_factory=list)
+    "Extracted list of prior companies."
+
+    # Internal fields for routing decisions
+    _continue_research: Optional[bool] = field(default=None)
+    "Internal flag for whether to continue research."
+
+    _reflection_reasoning: Optional[str] = field(default=None)
+    "Internal reasoning for the reflection decision."
+
+    _missing_information: list[str] = field(default_factory=list)
+    "Internal list of missing information identified during reflection."
+
+
 
