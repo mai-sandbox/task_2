@@ -1,22 +1,29 @@
 import asyncio
-from typing import cast, Any, Literal
 import json
+from typing import Any, cast
 
-from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import StateGraph
+from langgraph.constants import START, END
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import (
+    InputState,
+    OutputState,
+    OverallState,
+    ReflectionEvaluation,
+    StructuredPersonInfo,
+)
+from agent.utils import deduplicate_and_format_sources, format_all_notes
 
 # LLMs
 
@@ -94,7 +101,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -130,6 +136,49 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionOutput(BaseModel):
+    structured_info: StructuredPersonInfo = Field(description="Structured information extracted from notes")
+    evaluation: ReflectionEvaluation = Field(description="Quality evaluation of the research")
+
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on research notes to create structured output and evaluate completeness."""
+    # Format all notes
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create structured LLM with output format
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        schema=json.dumps(state.extraction_schema, indent=2),
+        notes=all_notes
+    )
+    
+    # Get structured reflection
+    result = await structured_llm.ainvoke([
+        {"role": "system", "content": reflection_prompt},
+        {"role": "user", "content": "Please analyze these research notes and provide both structured information and evaluation."}
+    ])
+    
+    return {
+        "structured_info": result.structured_info,
+        "reflection": result.evaluation
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -143,6 +192,8 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_edge("reflection", END)
 
 # Compile
 graph = builder.compile()

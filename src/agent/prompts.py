@@ -48,3 +48,44 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality evaluator. Your task is to analyze research notes about a person and convert them into structured information, then evaluate if the research is complete and satisfactory.
+
+PERSON BEING RESEARCHED: {person}
+
+TARGET INFORMATION SCHEMA:
+<schema>
+{schema}
+</schema>
+
+RESEARCH NOTES:
+<notes>
+{notes}
+</notes>
+
+YOUR TASK HAS TWO PARTS:
+
+PART 1: STRUCTURE THE INFORMATION
+Extract and organize the information from the notes into the structured format. Focus on these key areas:
+- Years of experience (try to calculate or estimate based on career timeline)  
+- Current company and role
+- Prior companies (list all previous employers mentioned)
+- Skills and expertise areas
+- Education background
+
+PART 2: EVALUATE RESEARCH QUALITY
+Assess whether the research is satisfactory by considering:
+- How much of the target schema is populated with reliable information?
+- Are there significant gaps in key areas (experience, current role, work history)?
+- Is the information from credible sources?
+- What critical information is still missing?
+
+Determine:
+- Is this research satisfactory? (true/false)
+- Confidence score (0.0 to 1.0)
+- Should we continue research? (true/false) 
+- What specific information is missing?
+- What new search queries might help fill gaps?
+- Reasoning for your decision
+
+Be thorough but practical - we want good quality information but don't need every detail about someone's life."""
