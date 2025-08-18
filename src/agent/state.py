@@ -31,8 +31,25 @@ class InputState:
 
 
 @dataclass(kw_only=True)
+class OutputState:
+    """Output state containing structured information extracted from research."""
+
+    years_of_experience: Optional[int] = field(default=None)
+    "Total years of professional experience."
+
+    current_company: Optional[str] = field(default=None)
+    "The current company where the person works."
+
+    role: Optional[str] = field(default=None)
+    "The current role or job title of the person."
+
+    prior_companies: list[str] = field(default_factory=list)
+    "List of companies the person has previously worked at."
+
+
+@dataclass(kw_only=True)
 class OverallState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Overall state that manages the entire research workflow."""
 
     person: Person
     "Person to research provided by the user."
@@ -46,4 +63,13 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Total years of professional experience",
+        "current_company": "Current company where the person works",
+        "role": "Current role or job title",
+        "prior_companies": "List of previous companies worked at"
+    })
+    "Schema defining what information to extract from research notes."
+
 
