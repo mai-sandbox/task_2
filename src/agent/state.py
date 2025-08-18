@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
+from typing import Any, Optional, Annotated, List
 import operator
 
 from pydantic import BaseModel
@@ -19,6 +19,34 @@ class Person(BaseModel):
     """The current title of the person."""
 
 
+class OutputState(BaseModel):
+    """Output state containing structured information extracted from research."""
+    
+    years_experience: Optional[int] = None
+    """Total years of professional experience."""
+    
+    current_company: Optional[str] = None
+    """Current company where the person works."""
+    
+    current_role: Optional[str] = None
+    """Current job title or role."""
+    
+    prior_companies: List[str] = []
+    """List of previous companies the person has worked at."""
+    
+    is_satisfactory: bool = False
+    """Whether the gathered information is satisfactory and complete."""
+    
+    missing_info: List[str] = []
+    """List of missing information that should be researched."""
+    
+    should_continue_research: bool = False
+    """Whether to continue researching or finish the process."""
+    
+    reasoning: str = ""
+    """Reasoning for the decision to continue or finish research."""
+
+
 @dataclass(kw_only=True)
 class InputState:
     """Input state defines the interface between the graph and the user (external API)."""
@@ -32,17 +60,49 @@ class InputState:
 
 @dataclass(kw_only=True)
 class OverallState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Overall state that includes both input and reflection output fields."""
 
     person: Person
     "Person to research provided by the user."
 
-    user_notes: str = field(default=None)
+    user_notes: Optional[str] = field(default=None)
     "Any notes from the user to start the research process."
 
-    search_queries: list[str] = field(default=None)
+    search_queries: Optional[list[str]] = field(default=None)
     "List of generated search queries to find relevant information"
 
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+    
+    extraction_schema: dict = field(default_factory=dict)
+    "Schema for information extraction"
+    
+    # Reflection output fields
+    years_experience: Optional[int] = field(default=None)
+    "Total years of professional experience."
+    
+    current_company: Optional[str] = field(default=None)
+    "Current company where the person works."
+    
+    current_role: Optional[str] = field(default=None)
+    "Current job title or role."
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies the person has worked at."
+    
+    is_satisfactory: bool = field(default=False)
+    "Whether the gathered information is satisfactory and complete."
+    
+    missing_info: List[str] = field(default_factory=list)
+    "List of missing information that should be researched."
+    
+    should_continue_research: bool = field(default=False)
+    "Whether to continue researching or finish the process."
+    
+    reasoning: str = field(default="")
+    "Reasoning for the decision to continue or finish research."
+
+
+
+
