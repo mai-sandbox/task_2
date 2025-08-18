@@ -1,0 +1,37 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./agent.py:app"
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": {
+      "description": "API key for Anthropic Claude models",
+      "required": true
+    },
+    "TAVILY_API_KEY": {
+      "description": "API key for Tavily web search",
+      "required": true
+    },
+    "LANGSMITH_API_KEY": {
+      "description": "API key for LangSmith tracing (optional)",
+      "required": false
+    },
+    "LANGSMITH_TRACING": {
+      "description": "Enable LangSmith tracing",
+      "default": "false",
+      "required": false
+    },
+    "LANGSMITH_PROJECT": {
+      "description": "LangSmith project name for tracing",
+      "default": "people-researcher",
+      "required": false
+    }
+  },
+  "python_version": "3.9",
+  "pip_config_file": null,
+  "dockerfile_lines": [],
+  "auth": {
+    "path": null,
+    "disable": false
+  }
+}
