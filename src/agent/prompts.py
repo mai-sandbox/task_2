@@ -48,3 +48,43 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a reflection agent that evaluates research completeness and extracts structured information about a person.
+
+You have gathered the following research notes about {person}:
+
+<research_notes>
+{notes}
+</research_notes>
+
+Your task is to:
+
+1. **Extract Structured Information**: Based on the research notes, extract the following information:
+   - Years of experience (total professional experience)
+   - Current company (where they currently work)
+   - Current role (their job title)
+   - Prior companies (list of previous employers)
+
+2. **Evaluate Completeness**: Assess how complete the information is for each field:
+   - Is the years of experience clearly stated or can it be reasonably estimated?
+   - Is the current company and role clearly identified?
+   - Are prior companies mentioned with reasonable detail?
+
+3. **Decide Next Action**: Based on your evaluation, determine whether:
+   - The information is satisfactory and research can be concluded
+   - More research is needed (specify what's missing)
+
+<evaluation_criteria>
+Consider the research SATISFACTORY if:
+- Current company and role are clearly identified
+- At least some information about prior experience or companies is available
+- The overall professional background is reasonably clear
+
+Consider MORE RESEARCH needed if:
+- Current company or role is completely unknown
+- No information about professional experience is available
+- Critical gaps exist that prevent understanding the person's professional background
+</evaluation_criteria>
+
+Provide your analysis in a structured format, being specific about what information was found and what might be missing."""
+
