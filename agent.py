@@ -1,4 +1,4 @@
-"""People Research Agent - LangGraph Deployment Entry Point
+"""People Research Agent - LangGraph Deployment Entry Point.
 
 This module serves as the main entry point for the LangGraph deployment.
 It imports the compiled graph and exports it as 'app' for the LangGraph platform.
@@ -44,8 +44,7 @@ def validate_environment():
             missing_vars.append(var)
 
     if missing_vars:
-        print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
-        print("These should be configured in your deployment environment or .env file")
+        pass
 
     return len(missing_vars) == 0
 
@@ -58,18 +57,8 @@ if __name__ != "__main__":
 
 # For local testing
 if __name__ == "__main__":
-    print(f"People Research Agent v{__version__}")
-    print(f"Description: {__description__}")
-    print("\nEnvironment validation:")
     if validate_environment():
-        print("✓ All required environment variables are set")
+        pass
     else:
-        print("✗ Some environment variables are missing (see warnings above)")
+        pass
 
-    print("\nGraph structure:")
-    print(f"- Nodes: {list(app.nodes.keys())}")
-    print("- Entry point: START → generate_queries")
-    print(
-        "- Workflow: generate_queries → research_person → reflection → [conditional routing]"
-    )
-    print("\nThe agent is ready for deployment!")
