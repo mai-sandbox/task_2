@@ -1,0 +1,12 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "people_researcher": {
+      "path": "src.agent.graph",
+      "variable": "graph"
+    }
+  },
+  "env": ".env"
+}

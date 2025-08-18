@@ -48,3 +48,42 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with reviewing and structuring research notes about a person, then determining if more research is needed.
+
+<research_notes>
+{completed_notes}
+</research_notes>
+
+<target_person>
+{person}
+</target_person>
+
+Your task has two parts:
+
+## Part 1: Structure the Information
+Extract and organize the following key information from the notes:
+- Name: Full name of the person
+- Current Company: Where they currently work  
+- Current Role: Their current job title/position
+- Years of Experience: Total years of professional experience (estimate if not explicit)
+- Prior Companies: List of previous companies they worked at
+- LinkedIn: LinkedIn profile URL
+- Email: Email address
+- Additional Notes: Any other relevant professional information
+
+## Part 2: Assess Completeness and Decide Next Steps  
+Evaluate the research quality and determine if additional research is needed by considering:
+
+1. **Information Completeness**: Are the key fields (experience, current company, role, prior companies) adequately filled?
+2. **Information Quality**: Is the information specific and verifiable, or vague and incomplete?
+3. **Missing Critical Data**: What important information is still missing?
+4. **Confidence Level**: How confident are you that this is the right person and the information is accurate?
+
+Based on your assessment:
+- **is_satisfactory**: True if the research provides sufficient detail for the key information areas
+- **missing_information**: List specific information that is missing or unclear  
+- **should_redo**: True if significant gaps exist that warrant additional research
+- **reasoning**: Explain your decision with specific reasoning about what's missing or why the current information is sufficient
+
+Focus especially on work experience, current position, and professional history as these are the most important aspects."""

@@ -1,22 +1,22 @@
 import asyncio
-from typing import cast, Any, Literal
 import json
+from typing import Any, Literal, cast
 
-from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import START, StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import InputState, OutputState, OverallState, ReflectionResult
+from agent.utils import deduplicate_and_format_sources
 
 # LLMs
 
@@ -94,7 +94,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -130,6 +129,51 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze research notes, structure information, and determine if more research is needed."""
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionResult)
+    
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f"\nName: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f"\nLinkedIn URL: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f"\nRole: {state.person.role}"
+    if state.person.company:
+        person_str += f"\nCompany: {state.person.company}"
+    
+    # Combine all notes
+    all_notes = "\n\n".join(state.completed_notes) if state.completed_notes else "No research notes available."
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        completed_notes=all_notes,
+        person=person_str
+    )
+    
+    # Get structured reflection result
+    reflection_result = structured_llm.invoke([
+        {"role": "system", "content": reflection_prompt},
+        {"role": "user", "content": "Please analyze the research notes and provide your structured assessment."}
+    ])
+    
+    return {
+        "reflection_result": reflection_result,
+        "structured_info": reflection_result.structured_info
+    }
+
+
+def should_continue(state: OverallState) -> Literal["research_person", "__end__"]:
+    """Determine whether to continue research or end the process."""
+    if state.reflection_result and state.reflection_result.should_redo:
+        return "research_person"
+    else:
+        return "__end__"
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -143,6 +187,8 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges("reflection", should_continue)
 
 # Compile
 graph = builder.compile()
