@@ -6,15 +6,8 @@ This module imports the compiled graph from the src/agent package
 and exports it as 'app' for LangGraph Platform compatibility.
 """
 
-import sys
-from pathlib import Path
-
-# Add src directory to Python path to enable imports
-src_path = Path(__file__).parent / "src"
-sys.path.insert(0, str(src_path))
-
-# Import the compiled graph from the agent module
-from agent.graph import graph
+# Import the compiled graph directly from the src.agent module
+from src.agent.graph import graph
 
 # Export the graph as 'app' for LangGraph deployment
 # This is the standard variable name expected by LangGraph Platform
@@ -28,3 +21,4 @@ if __name__ == "__main__":
     print(f"Graph nodes: {list(app.nodes.keys())}")
     print(f"Entry point: START → generate_queries")
     print(f"Workflow: generate_queries → research_person → reflection → [continue/stop]")
+
