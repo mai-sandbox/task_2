@@ -1,0 +1,10 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "people_researcher": {
+      "path": "src.agent.graph:graph",
+      "description": "A research agent that searches for information about a person and returns it in a structured format with reflection capabilities"
+    }
+  },
+  "env": ".env"
+}

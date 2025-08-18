@@ -1,8 +1,9 @@
-from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
 import operator
+from dataclasses import dataclass, field
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel
+
 
 class Person(BaseModel):
     """A class representing a person to research."""
@@ -43,6 +44,33 @@ class OverallState:
     search_queries: list[str] = field(default=None)
     "List of generated search queries to find relevant information"
 
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Total years of professional experience",
+        "current_company": "Current company name",
+        "current_role": "Current job title/role",
+        "prior_companies": "List of previous companies worked at with roles and approximate years",
+        "education": "Educational background if available",
+        "skills": "Key professional skills mentioned"
+    })
+    "Schema defining what information to extract about the person"
+
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+    
+    reflection_result: Optional[str] = field(default=None)
+    "Result of the reflection step analyzing research quality and completeness"
+    
+    should_continue_research: bool = field(default=True)
+    "Whether to continue research based on reflection assessment"
+
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines what the graph returns to the user."""
+
+    completed_notes: list[str]
+    "All research notes collected about the person"
+    
+    reflection_result: str
+    "Final reflection assessment of the research quality and extracted information"

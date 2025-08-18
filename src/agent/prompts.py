@@ -48,3 +48,40 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality assessor. Your job is to analyze research notes about a person and determine if the information is complete and satisfactory.
+
+The following schema shows the specific information we need to extract:
+<schema>
+{info}
+</schema>
+
+Here are the research notes gathered so far:
+<research_notes>
+{notes}
+</research_notes>
+
+Please analyze the notes and provide a structured assessment with the following components:
+
+1. **Extracted Information**: Extract and structure the available information according to the schema, focusing on:
+   - Years of experience (total and in current role)
+   - Current company and role
+   - Previous companies and roles worked at
+   - Any other relevant professional information
+
+2. **Completeness Assessment**: 
+   - What information is complete and well-documented?
+   - What information is missing or unclear?
+   - What gaps exist in the professional timeline?
+
+3. **Quality Assessment**:
+   - How confident are you in the accuracy of the extracted information?
+   - Are there any contradictions or inconsistencies?
+   - What additional information would improve the research quality?
+
+4. **Research Decision**:
+   - Is the current information satisfactory for the research goals? (YES/NO)
+   - What specific additional searches would be most valuable?
+   - Provide clear reasoning for whether to continue researching or conclude
+
+Format your response as structured data that clearly separates the extracted information from your assessment."""

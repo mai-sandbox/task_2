@@ -1,22 +1,22 @@
 import asyncio
-from typing import cast, Any, Literal
 import json
+from typing import Any, Literal, cast
 
-from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import InputState, OutputState, OverallState
+from agent.utils import deduplicate_and_format_sources, format_all_notes
 
 # LLMs
 
@@ -94,7 +94,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -130,6 +129,40 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze the research notes and determine if information is complete and satisfactory."""
+    # Format all notes into a single string
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        info=json.dumps(state.extraction_schema, indent=2),
+        notes=all_notes
+    )
+    
+    # Get reflection analysis
+    result = await claude_3_5_sonnet.ainvoke(reflection_prompt)
+    reflection_content = str(result.content)
+    
+    # Simple check to determine if research should continue
+    # Look for "NO" in the response to the satisfaction question
+    should_continue = "satisfactory for the research goals? (YES/NO)" in reflection_content and \
+                     "NO" in reflection_content.split("satisfactory for the research goals?")[-1][:20]
+    
+    return {
+        "reflection_result": reflection_content,
+        "should_continue_research": should_continue
+    }
+
+
+def should_continue_research(state: OverallState) -> Literal["research_person", "end"]:
+    """Decision function to determine whether to continue research or end."""
+    if state.should_continue_research:
+        return "research_person"
+    else:
+        return "end"
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -143,6 +176,15 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "research_person": "research_person",
+        "end": END,
+    }
+)
 
 # Compile
 graph = builder.compile()
