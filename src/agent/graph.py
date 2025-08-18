@@ -105,7 +105,8 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
     # Web search
     search_tasks = []
-    for query in state.search_queries:
+    if state.search_queries:  # Type guard for Optional[list[str]]
+        for query in state.search_queries:
         search_tasks.append(
             tavily_async_client.search(
                 query,
@@ -219,6 +220,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
