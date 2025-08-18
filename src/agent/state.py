@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
+from typing import Any, Optional, Annotated, List
 import operator
 
 from pydantic import BaseModel
@@ -17,6 +17,34 @@ class Person(BaseModel):
     """The email of the person."""
     role: Optional[str] = None
     """The current title of the person."""
+
+
+class OutputState(BaseModel):
+    """Output state containing structured information extracted from research."""
+    
+    years_experience: Optional[int] = None
+    """Total years of professional experience."""
+    
+    current_company: Optional[str] = None
+    """Current company where the person works."""
+    
+    current_role: Optional[str] = None
+    """Current job title or role."""
+    
+    prior_companies: List[str] = []
+    """List of previous companies the person has worked at."""
+    
+    is_satisfactory: bool = False
+    """Whether the gathered information is satisfactory and complete."""
+    
+    missing_info: List[str] = []
+    """List of missing information that should be researched."""
+    
+    should_continue_research: bool = False
+    """Whether to continue researching or finish the process."""
+    
+    reasoning: str = ""
+    """Reasoning for the decision to continue or finish research."""
 
 
 @dataclass(kw_only=True)
@@ -46,3 +74,4 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
