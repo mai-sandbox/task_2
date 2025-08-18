@@ -4,13 +4,20 @@ import json
 
 from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import StateGraph, END, START
 from pydantic import BaseModel, Field
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
+from agent.state import (
+    InputState, 
+    OutputState, 
+    OverallState,
+    StructuredPersonInfo,
+    ReflectionOutput,
+    CompanyExperience
+)
 from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
     REFLECTION_PROMPT,
@@ -31,7 +38,9 @@ claude_3_5_sonnet = ChatAnthropic(
 
 # Search
 
-tavily_async_client = AsyncTavilyClient()
+import os
+tavily_api_key = os.getenv("TAVILY_API_KEY", "dummy-key-for-import")
+tavily_async_client = AsyncTavilyClient(api_key=tavily_api_key) if tavily_api_key != "dummy-key-for-import" else None
 
 
 class Queries(BaseModel):
@@ -99,6 +108,14 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
 
+    # Initialize Tavily client if needed
+    global tavily_async_client
+    if tavily_async_client is None:
+        api_key = os.getenv("TAVILY_API_KEY")
+        if not api_key:
+            raise ValueError("TAVILY_API_KEY environment variable is required")
+        tavily_async_client = AsyncTavilyClient(api_key=api_key)
+
     # Web search
     search_tasks = []
     for query in state.search_queries:
@@ -130,6 +147,86 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research notes to extract structured information and assess completeness."""
+    
+    # Format all collected notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Create the reflection prompt
+    person_dict = state.person.model_dump() if hasattr(state.person, 'model_dump') else state.person
+    
+    reflection_prompt = REFLECTION_PROMPT.format(
+        email=person_dict.get('email', ''),
+        name=person_dict.get('name', 'Not provided'),
+        linkedin=person_dict.get('linkedin', 'Not provided'),
+        company=person_dict.get('company', 'Not provided'),
+        role=person_dict.get('role', 'Not provided'),
+        notes=formatted_notes,
+        retry_count=state.retry_count
+    )
+    
+    # Get structured output from the LLM
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    reflection_result = await structured_llm.ainvoke([
+        {"role": "system", "content": "You are an expert at analyzing research notes and extracting structured information."},
+        {"role": "user", "content": reflection_prompt}
+    ])
+    
+    # Prepare the output
+    output = {
+        "structured_info": reflection_result.structured_info,
+        "reflection_output": reflection_result
+    }
+    
+    # If we should retry and haven't exceeded max retries, increment retry count
+    if reflection_result.should_retry and state.retry_count < 2:
+        output["retry_count"] = state.retry_count + 1
+        # Clear the completed notes for the next iteration
+        output["completed_notes"] = []
+    
+    return output
+
+
+def should_continue(state: OverallState) -> Literal["generate_queries", "finalize"]:
+    """Decide whether to continue searching or finalize the results."""
+    
+    if state.reflection_output is None:
+        # First time through, go to reflection
+        return "finalize"
+    
+    # Check if we should retry based on reflection output
+    if state.reflection_output.should_retry and state.retry_count < 2:
+        return "generate_queries"
+    
+    return "finalize"
+
+
+def finalize_output(state: OverallState) -> dict[str, Any]:
+    """Prepare the final output for the user."""
+    
+    # Format all notes
+    raw_notes = format_all_notes(state.completed_notes)
+    
+    # Create completeness assessment
+    if state.reflection_output:
+        if state.reflection_output.is_satisfactory:
+            completeness = "Information gathering was satisfactory. " + state.reflection_output.reasoning
+        else:
+            missing = ", ".join(state.reflection_output.missing_info) if state.reflection_output.missing_info else "None identified"
+            completeness = f"Information gathering was incomplete. Missing: {missing}. {state.reflection_output.reasoning}"
+    else:
+        completeness = "No reflection performed."
+    
+    return {
+        "structured_info": state.structured_info or StructuredPersonInfo(email=state.person.email),
+        "raw_notes": raw_notes,
+        "completeness_assessment": completeness
+    }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -137,12 +234,29 @@ builder = StateGraph(
     output=OutputState,
     config_schema=Configuration,
 )
+
+# Add nodes
 builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
+builder.add_node("finalize", finalize_output)
 
+# Add edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+builder.add_conditional_edges(
+    "reflection",
+    should_continue,
+    {
+        "generate_queries": "generate_queries",
+        "finalize": "finalize"
+    }
+)
+
+builder.add_edge("finalize", END)
 
 # Compile
 graph = builder.compile()

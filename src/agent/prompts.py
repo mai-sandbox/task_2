@@ -48,3 +48,40 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are analyzing research notes about a person to extract structured information and assess completeness.
+
+Person being researched:
+- Email: {email}
+- Name: {name}
+- LinkedIn: {linkedin}
+- Company: {company}
+- Role: {role}
+
+Research notes collected:
+{notes}
+
+Your task is to:
+1. Extract structured information from the notes, focusing on:
+   - Years of experience (calculate from work history if not explicitly stated)
+   - Current company and role
+   - Prior companies and roles (with durations when available)
+   - Educational background
+   - Key skills and expertise
+
+2. Assess whether the information is satisfactory by checking:
+   - Do we have clear information about their current position?
+   - Do we have a reasonable work history (at least 2-3 prior roles)?
+   - Can we estimate their years of experience?
+   - Do we understand their professional background?
+
+3. Identify what's missing and could be found with more searching:
+   - Be specific about what information gaps exist
+   - Only list items that are realistically findable through web search
+
+4. Provide reasoning for whether to retry:
+   - Consider if missing information is critical
+   - Consider if we've already tried {retry_count} times
+   - Maximum retries should be 2
+
+Please be thorough in extracting information from the notes, even if some details are incomplete."""
