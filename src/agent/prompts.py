@@ -48,3 +48,52 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality evaluator tasked with determining whether the gathered information about a person is complete and satisfactory.
+
+Here is the person being researched: {person}
+
+The following schema shows the key information we need to collect:
+
+<schema>
+{info}
+</schema>
+
+Here are the research notes gathered so far:
+
+<completed_notes>
+{completed_notes}
+</completed_notes>
+
+Your task is to:
+
+1. **Extract and Structure Information**: Convert the research notes into a structured format matching the schema fields:
+   - Years of experience (total professional work experience)
+   - Current company (where they currently work)
+   - Current role (their current job title/position)
+   - Prior companies (list of previous employers)
+
+2. **Evaluate Completeness**: Assess whether we have sufficient information for each required field:
+   - Is the years of experience clearly identified or can it be reasonably calculated?
+   - Is the current company definitively identified?
+   - Is the current role/title clearly stated?
+   - Do we have a good understanding of their work history/prior companies?
+
+3. **Decision Making**: Determine whether to:
+   - **STOP**: Research is satisfactory - we have enough information for the key fields
+   - **CONTINUE**: More research is needed - critical information is missing or unclear
+
+4. **Provide Reasoning**: Explain your decision with specific details about:
+   - What information is complete and reliable
+   - What information is missing, unclear, or needs verification
+   - Why you believe research should continue or stop
+   - Specific suggestions for additional searches if continuing
+
+Please respond with:
+- **DECISION**: Either "STOP" or "CONTINUE"
+- **STRUCTURED_INFO**: The extracted information in structured format
+- **MISSING_INFO**: List of missing or unclear information
+- **REASONING**: Detailed explanation of your decision
+
+Focus on quality over quantity - it's better to have reliable, verified information than incomplete or uncertain data."""
+
