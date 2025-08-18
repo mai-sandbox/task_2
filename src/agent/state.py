@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
+from typing import Any, Optional, Annotated, List, Dict
 import operator
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Person(BaseModel):
     """A class representing a person to research."""
@@ -46,3 +46,4 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
