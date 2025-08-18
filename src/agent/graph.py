@@ -42,22 +42,16 @@ class Queries(BaseModel):
 
 class ReflectionOutput(BaseModel):
     """Structured output from the reflection step."""
-    
+
     years_of_experience: int | None = Field(
-        default=None,
-        description="Total years of professional experience"
+        default=None, description="Total years of professional experience"
     )
     current_company: str | None = Field(
-        default=None,
-        description="Current company where the person works"
+        default=None, description="Current company where the person works"
     )
-    role: str | None = Field(
-        default=None,
-        description="Current role or job title"
-    )
+    role: str | None = Field(default=None, description="Current role or job title")
     prior_companies: list[str] = Field(
-        default_factory=list,
-        description="List of previous companies worked at"
+        default_factory=list, description="List of previous companies worked at"
     )
     continue_research: bool = Field(
         description="Whether to continue research (True) or finish (False)"
@@ -67,9 +61,8 @@ class ReflectionOutput(BaseModel):
     )
     missing_information: list[str] = Field(
         default_factory=list,
-        description="List of specific information that is missing if research should continue"
+        description="List of specific information that is missing if research should continue",
     )
-
 
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
@@ -118,7 +111,9 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     return {"search_queries": query_list}
 
 
-async def research_person(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+async def research_person(
+    state: OverallState, config: RunnableConfig
+) -> dict[str, Any]:
     """Execute a multi-step web search and information extraction process.
 
     This function performs the following steps:
@@ -163,7 +158,7 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Analyze research notes, extract structured information, and decide next steps.
-    
+
     This function:
     1. Takes completed research notes from state
     2. Uses structured LLM output to extract key person information
@@ -172,7 +167,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """
     # Format all completed notes into a single string
     formatted_notes = format_all_notes(state.completed_notes)
-    
+
     # Format person information for the prompt
     person_str = f"Email: {state.person.email}"
     if state.person.name:
@@ -181,16 +176,15 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
         person_str += f", Company: {state.person.company}"
     if state.person.role:
         person_str += f", Role: {state.person.role}"
-    
+
     # Create structured LLM for reflection output
     structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
-    
+
     # Format the reflection prompt
     reflection_prompt = REFLECTION_PROMPT.format(
-        person=person_str,
-        completed_notes=formatted_notes
+        person=person_str, completed_notes=formatted_notes
     )
-    
+
     # Get structured reflection output
     reflection_result = cast(
         ReflectionOutput,
@@ -207,7 +201,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
             ]
         ),
     )
-    
+
     # Prepare the state update with extracted information
     state_update = {
         "years_of_experience": reflection_result.years_of_experience,
@@ -215,19 +209,19 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
         "role": reflection_result.role,
         "prior_companies": reflection_result.prior_companies,
     }
-    
+
     # Store the reflection decision in state for conditional routing
     # We'll use this in the routing function
     state_update["_continue_research"] = reflection_result.continue_research
     state_update["_reflection_reasoning"] = reflection_result.reasoning
     state_update["_missing_information"] = reflection_result.missing_information
-    
+
     return state_update
 
 
 def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
     """Conditional routing function that decides whether to continue research or finish.
-    
+
     Examines the reflection output stored in state and returns:
     - 'generate_queries' if more research is needed (to regenerate search queries)
     - 'END' if the research is satisfactory
@@ -263,14 +257,9 @@ builder.add_conditional_edges(
     should_continue_research,
     {
         "generate_queries": "generate_queries",  # If more research needed, go back to generate queries
-        END: END  # If satisfactory, end the workflow
-    }
+        END: END,  # If satisfactory, end the workflow
+    },
 )
 
 # Compile
 graph = builder.compile()
-
-
-
-
-

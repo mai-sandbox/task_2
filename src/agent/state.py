@@ -65,12 +65,14 @@ class OverallState:
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
 
-    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
-        "years_of_experience": "Total years of professional experience",
-        "current_company": "Current company where the person works",
-        "role": "Current role or job title",
-        "prior_companies": "List of previous companies worked at"
-    })
+    extraction_schema: dict[str, Any] = field(
+        default_factory=lambda: {
+            "years_of_experience": "Total years of professional experience",
+            "current_company": "Current company where the person works",
+            "role": "Current role or job title",
+            "prior_companies": "List of previous companies worked at",
+        }
+    )
     "Schema defining what information to extract from research notes."
 
     # Reflection output fields
@@ -95,6 +97,3 @@ class OverallState:
 
     _missing_information: list[str] = field(default_factory=list)
     "Internal list of missing information identified during reflection."
-
-
-
