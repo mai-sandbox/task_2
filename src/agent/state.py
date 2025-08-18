@@ -56,3 +56,27 @@ class OverallState:
     "Schema defining the structured information to extract about the person"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state containing the structured information extracted from research."""
+    
+    years_experience: Optional[str] = field(default=None)
+    "Total years of professional experience of the person"
+    
+    current_company: Optional[str] = field(default=None)
+    "Current employer/company name where the person works"
+    
+    role: Optional[str] = field(default=None)
+    "Current job title/position of the person"
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies the person has worked at"
+    
+    completed_notes: List[str] = field(default_factory=list)
+    "All research notes gathered during the process"
+    
+    reflection_reasoning: Optional[str] = field(default=None)
+    "Reasoning from the reflection step about information completeness"
+
+
+
