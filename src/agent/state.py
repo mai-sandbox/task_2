@@ -72,7 +72,7 @@ class OverallState:
     person: Person
     "Person to research provided by the user."
 
-    user_notes: str = field(default=None)
+    user_notes: Optional[str] = field(default=None)
     "Any notes from the user to start the research process."
 
     search_queries: list[str] = field(default=None)
@@ -122,6 +122,7 @@ class OverallState:
         }
     })
     "Schema defining the structured format for extracting person information"
+
 
 
 
