@@ -1,3 +1,5 @@
+"""Prompts module for the people research agent."""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -90,3 +92,4 @@ Consider these factors when making your decision:
 - Quality of information (is it from reliable sources like LinkedIn, company websites?)
 
 Remember: It's better to have accurate, well-sourced information than to guess. If critical information is genuinely missing or unclear, recommend additional research with specific search suggestions."""
+
