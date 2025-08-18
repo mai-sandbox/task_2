@@ -1,13 +1,10 @@
-"""
-People Research Agent - LangGraph Deployment Entry Point
+"""People Research Agent - LangGraph Deployment Entry Point
 
 This module serves as the main entry point for the LangGraph deployment.
 It imports the compiled graph and exports it as 'app' for the LangGraph platform.
 """
 
 import os
-import sys
-from typing import Optional
 
 # Import the compiled graph from the src.agent module
 from src.agent.graph import graph
@@ -22,8 +19,7 @@ __description__ = "Researcher agent that searches information about a person and
 
 
 def get_app():
-    """
-    Factory function to get the configured app instance.
+    """Factory function to get the configured app instance.
     This can be useful for testing or custom initialization.
     
     Returns:
@@ -34,8 +30,7 @@ def get_app():
 
 # Configuration validation (optional but recommended)
 def validate_environment():
-    """
-    Validate that required environment variables are set.
+    """Validate that required environment variables are set.
     This helps catch configuration issues early in deployment.
     """
     required_vars = [
@@ -73,7 +68,7 @@ if __name__ == "__main__":
     
     print("\nGraph structure:")
     print(f"- Nodes: {list(app.nodes.keys())}")
-    print(f"- Entry point: START → generate_queries")
-    print(f"- Workflow: generate_queries → research_person → reflection → [conditional routing]")
+    print("- Entry point: START → generate_queries")
+    print("- Workflow: generate_queries → research_person → reflection → [conditional routing]")
     print("\nThe agent is ready for deployment!")
 
