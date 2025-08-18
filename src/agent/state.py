@@ -75,7 +75,7 @@ class OverallState:
     user_notes: Optional[str] = field(default=None)
     "Any notes from the user to start the research process."
 
-    search_queries: list[str] = field(default=None)
+    search_queries: list[str] = field(default_factory=list)
     "List of generated search queries to find relevant information"
 
     # Add default values for required fields
@@ -122,6 +122,7 @@ class OverallState:
         }
     })
     "Schema defining the structured format for extracting person information"
+
 
 
 
