@@ -1,5 +1,5 @@
 import asyncio
-from typing import cast, Any, Literal
+from typing import cast, Any, Literal, List
 import json
 
 from tavily import AsyncTavilyClient
@@ -37,6 +37,43 @@ tavily_async_client = AsyncTavilyClient()
 class Queries(BaseModel):
     queries: list[str] = Field(
         description="List of search queries.",
+    )
+
+
+class ExtractedInfo(BaseModel):
+    """Structured information extracted from research notes."""
+    years_experience: str = Field(
+        default="Not found",
+        description="Total years of professional experience"
+    )
+    current_company: str = Field(
+        default="Not found",
+        description="Current employer/company name"
+    )
+    role: str = Field(
+        default="Not found",
+        description="Current job title/position"
+    )
+    prior_companies: List[str] = Field(
+        default_factory=list,
+        description="List of previous companies worked at"
+    )
+
+
+class ReflectionDecision(BaseModel):
+    """Decision from reflection on whether to continue research."""
+    decision: Literal["continue", "stop"] = Field(
+        description="Whether to continue researching or stop"
+    )
+    reasoning: str = Field(
+        description="Detailed reasoning for the decision"
+    )
+    missing_information: List[str] = Field(
+        default_factory=list,
+        description="List of missing information that needs to be found"
+    )
+    extracted_info: ExtractedInfo = Field(
+        description="Structured information extracted from notes"
     )
 
 
@@ -130,6 +167,86 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research notes to extract structured information and decide next steps.
+    
+    This function:
+    1. Converts research notes to structured format
+    2. Evaluates completeness of information
+    3. Decides whether to continue research or stop
+    """
+    
+    # Format all collected notes
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    # Format person information for context
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        notes=all_notes,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
+        user_notes=state.user_notes if state.user_notes else "No additional notes provided"
+    )
+    
+    # Get reflection decision
+    reflection_result = cast(
+        ReflectionDecision,
+        structured_llm.invoke(
+            [
+                {
+                    "role": "system",
+                    "content": "You are a research analyst evaluating the completeness of gathered information about a person's professional background."
+                },
+                {
+                    "role": "user",
+                    "content": reflection_prompt
+                }
+            ]
+        )
+    )
+    
+    # Prepare output state based on extracted information
+    output_update = {
+        "years_experience": reflection_result.extracted_info.years_experience,
+        "current_company": reflection_result.extracted_info.current_company,
+        "role": reflection_result.extracted_info.role,
+        "prior_companies": reflection_result.extracted_info.prior_companies,
+        "reflection_reasoning": reflection_result.reasoning,
+        "completed_notes": state.completed_notes  # Pass through the notes
+    }
+    
+    # Store the decision in state for conditional routing
+    output_update["reflection_decision"] = reflection_result.decision
+    
+    return output_update
+
+
+def route_reflection(state: OverallState) -> Literal["research_person", "__end__"]:
+    """Route based on reflection decision to either continue research or end."""
+    # Check the reflection decision
+    if state.reflection_decision == "continue":
+        # Need more research - go back to research_person
+        # Note: We'll reuse existing queries, but could also regenerate them
+        return "research_person"
+    else:
+        # Information is satisfactory - end the workflow
+        return "__end__"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -141,8 +258,25 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+# Define the workflow edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+# This creates the loop: reflection can route back to research_person or end
+builder.add_conditional_edges(
+    "reflection",
+    route_reflection,
+    {
+        "research_person": "research_person",
+        "__end__": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
+
+
+

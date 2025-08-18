@@ -1,0 +1,10 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "people_researcher": "./agent.py:app"
+  },
+  "env": ".env"
+}
+
