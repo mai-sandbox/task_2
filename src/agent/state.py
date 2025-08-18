@@ -56,3 +56,30 @@ class OverallState:
     "Schema defining the information to extract from research"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state containing structured information extracted from research."""
+    
+    years_of_experience: Optional[int] = field(default=None)
+    "Total years of professional experience"
+    
+    current_company: Optional[str] = field(default=None)
+    "Current employer/company name"
+    
+    role: Optional[str] = field(default=None)
+    "Current job title/position"
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies the person has worked at"
+    
+    completed_notes: list[str] = field(default_factory=list)
+    "All research notes collected during the process"
+    
+    research_complete: bool = field(default=False)
+    "Whether the research process is complete"
+    
+    missing_information: List[str] = field(default_factory=list)
+    "List of information that could not be found"
+
+
+
