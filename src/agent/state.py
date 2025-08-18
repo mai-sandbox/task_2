@@ -60,7 +60,7 @@ class InputState:
 
 @dataclass(kw_only=True)
 class OverallState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Overall state that includes both input and reflection output fields."""
 
     person: Person
     "Person to research provided by the user."
@@ -77,5 +77,31 @@ class OverallState:
     
     extraction_schema: dict = field(default_factory=dict)
     "Schema for information extraction"
+    
+    # Reflection output fields
+    years_experience: Optional[int] = field(default=None)
+    "Total years of professional experience."
+    
+    current_company: Optional[str] = field(default=None)
+    "Current company where the person works."
+    
+    current_role: Optional[str] = field(default=None)
+    "Current job title or role."
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies the person has worked at."
+    
+    is_satisfactory: bool = field(default=False)
+    "Whether the gathered information is satisfactory and complete."
+    
+    missing_info: List[str] = field(default_factory=list)
+    "List of missing information that should be researched."
+    
+    should_continue_research: bool = field(default=False)
+    "Whether to continue researching or finish the process."
+    
+    reasoning: str = field(default="")
+    "Reasoning for the decision to continue or finish research."
+
 
 
