@@ -130,6 +130,63 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and extract structured information.
+    
+    This function:
+    1. Processes all completed research notes
+    2. Extracts structured person information (experience, companies, roles)
+    3. Evaluates research completeness
+    4. Determines if more research is needed
+    5. Provides reasoning for the decision
+    """
+    
+    # Format the completed notes for analysis
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create structured LLM with ReflectionResult output
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionResult)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=formatted_notes,
+        user_notes=state.user_notes or "No additional notes provided"
+    )
+    
+    # Get structured reflection result
+    reflection_result = cast(
+        ReflectionResult,
+        structured_llm.invoke(
+            [
+                {
+                    "role": "system",
+                    "content": "You are an expert research analyst specializing in professional background analysis.",
+                },
+                {
+                    "role": "user",
+                    "content": reflection_prompt,
+                },
+            ]
+        ),
+    )
+    
+    # Return the reflection result to update the state
+    return {"reflection_result": reflection_result}
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,4 +203,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
