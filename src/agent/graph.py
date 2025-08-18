@@ -167,6 +167,73 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research notes to extract structured information and decide next steps.
+    
+    This function:
+    1. Converts research notes to structured format
+    2. Evaluates completeness of information
+    3. Decides whether to continue research or stop
+    """
+    
+    # Format all collected notes
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    # Format person information for context
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        notes=all_notes,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
+        user_notes=state.user_notes if state.user_notes else "No additional notes provided"
+    )
+    
+    # Get reflection decision
+    reflection_result = cast(
+        ReflectionDecision,
+        structured_llm.invoke(
+            [
+                {
+                    "role": "system",
+                    "content": "You are a research analyst evaluating the completeness of gathered information about a person's professional background."
+                },
+                {
+                    "role": "user",
+                    "content": reflection_prompt
+                }
+            ]
+        )
+    )
+    
+    # Prepare output state based on extracted information
+    output_update = {
+        "years_experience": reflection_result.extracted_info.years_experience,
+        "current_company": reflection_result.extracted_info.current_company,
+        "role": reflection_result.extracted_info.role,
+        "prior_companies": reflection_result.extracted_info.prior_companies,
+        "reflection_reasoning": reflection_result.reasoning,
+        "completed_notes": state.completed_notes  # Pass through the notes
+    }
+    
+    # Store the decision in state for conditional routing
+    output_update["reflection_decision"] = reflection_result.decision
+    
+    return output_update
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -183,5 +250,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
