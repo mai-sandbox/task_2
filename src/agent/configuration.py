@@ -28,4 +28,3 @@ class Configuration:
             if f.init
         }
         return cls(**{k: v for k, v in values.items() if v})
-

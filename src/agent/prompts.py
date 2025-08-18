@@ -92,4 +92,3 @@ Consider these factors when making your decision:
 - Quality of information (is it from reliable sources like LinkedIn, company websites?)
 
 Remember: It's better to have accurate, well-sourced information than to guess. If critical information is genuinely missing or unclear, recommend additional research with specific search suggestions."""
-
