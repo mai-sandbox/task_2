@@ -93,7 +93,7 @@ def test_state_classes():
         # Test InputState
         input_state = InputState(
             person=person,
-            extraction_schema={"years_experience": "Number of years of experience"}
+            user_notes={"test_note": "This is a test note"}
         )
         assert input_state.person.email == "test@example.com"
         print("✓ InputState instantiation successful")
@@ -271,4 +271,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
