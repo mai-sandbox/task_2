@@ -56,7 +56,7 @@ class OverallState:
     user_notes: Optional[str] = field(default=None)
     "Any notes from the user to start the research process."
 
-    search_queries: list[str] = field(default=None)
+    search_queries: Optional[list[str]] = field(default=None)
     "List of generated search queries to find relevant information"
 
     # Add default values for required fields
@@ -90,6 +90,7 @@ class OutputState:
     
     completeness_assessment: str
     "Assessment of how complete the gathered information is"
+
 
 
 
