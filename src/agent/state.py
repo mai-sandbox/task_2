@@ -48,7 +48,7 @@ class InputState:
 
 @dataclass(kw_only=True)
 class OverallState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Overall state for the research agent workflow."""
 
     person: Person
     "Person to research provided by the user."
@@ -62,4 +62,33 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+    
+    extraction_schema: dict = field(default_factory=lambda: {
+        "years_of_experience": "Total years of professional experience",
+        "current_company": "The company where the person currently works",
+        "role": "Current job title or role",
+        "prior_companies": "List of companies the person has previously worked at"
+    })
+    "Schema defining what information to extract about the person"
+    
+    structured_info: Optional[PersonInfo] = field(default=None)
+    "Structured information extracted from research notes"
+    
+    continue_research: bool = field(default=True)
+    "Whether to continue researching or finish"
+
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state containing the final structured information about the person."""
+    
+    person_info: PersonInfo
+    "Structured information about the person's professional background"
+    
+    research_notes: str
+    "Consolidated research notes from all searches"
+    
+    completeness_assessment: str
+    "Assessment of how complete the gathered information is"
+
 
