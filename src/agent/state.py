@@ -54,6 +54,31 @@ class OverallState:
         "prior_companies": "List of previous companies worked at"
     })
     "Schema defining the information to extract from research"
+    
+    # Reflection-related fields
+    years_of_experience: Optional[int] = field(default=None)
+    "Extracted years of professional experience"
+    
+    current_company: Optional[str] = field(default=None)
+    "Extracted current employer/company name"
+    
+    role: Optional[str] = field(default=None)
+    "Extracted current job title/position"
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies the person has worked at"
+    
+    missing_information: List[str] = field(default_factory=list)
+    "List of information that could not be found"
+    
+    reflection_decision: Optional[str] = field(default=None)
+    "Decision from reflection: CONTINUE_RESEARCH or FINISH_RESEARCH"
+    
+    reflection_reasoning: Optional[str] = field(default=None)
+    "Reasoning for the reflection decision"
+    
+    research_complete: bool = field(default=False)
+    "Whether the research process is complete"
 
 
 @dataclass(kw_only=True)
@@ -80,6 +105,7 @@ class OutputState:
     
     missing_information: List[str] = field(default_factory=list)
     "List of information that could not be found"
+
 
 
 
