@@ -202,6 +202,25 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     }
 
 
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "__end__"]:
+    """Conditional edge function to determine workflow continuation.
+    
+    Returns:
+        "generate_queries": If research should continue (more information needed)
+        "__end__": If research is complete (sufficient information gathered)
+    """
+    # Check if research is marked as complete by the reflection step
+    if hasattr(state, 'research_complete') and getattr(state, 'research_complete', False):
+        return "__end__"
+    
+    # If we have search queries that need to be processed, continue research
+    if state.search_queries and len(state.search_queries) > 0:
+        return "generate_queries"
+    
+    # Default to ending if no clear continuation signal
+    return "__end__"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -213,9 +232,22 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+# Define the workflow edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",  # Continue research - loop back
+        "__end__": END,  # Stop research - end workflow
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
