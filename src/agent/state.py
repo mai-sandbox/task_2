@@ -65,10 +65,10 @@ class OverallState:
     person: Person
     "Person to research provided by the user."
 
-    user_notes: str = field(default=None)
+    user_notes: Optional[str] = field(default=None)
     "Any notes from the user to start the research process."
 
-    search_queries: list[str] = field(default=None)
+    search_queries: Optional[list[str]] = field(default=None)
     "List of generated search queries to find relevant information"
 
     # Add default values for required fields
@@ -102,6 +102,7 @@ class OverallState:
     
     reasoning: str = field(default="")
     "Reasoning for the decision to continue or finish research."
+
 
 
 
