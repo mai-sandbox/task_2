@@ -54,6 +54,9 @@ class OverallState:
         "prior_companies": "List of previous companies worked at"
     })
     "Schema defining the structured information to extract about the person"
+    
+    reflection_decision: Optional[str] = field(default=None)
+    "Decision from reflection: 'continue' to research more or 'stop' if satisfactory"
 
 
 @dataclass(kw_only=True)
@@ -77,6 +80,7 @@ class OutputState:
     
     reflection_reasoning: Optional[str] = field(default=None)
     "Reasoning from the reflection step about information completeness"
+
 
 
 
