@@ -151,6 +151,69 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research notes to extract structured information and decide next steps.
+    
+    This function:
+    1. Consolidates all research notes
+    2. Extracts structured PersonInfo from the notes
+    3. Evaluates the completeness of the information
+    4. Decides whether to continue research or finish
+    """
+    
+    # Consolidate all research notes
+    consolidated_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        notes=consolidated_notes
+    )
+    
+    # Get structured reflection output
+    reflection_result = await structured_llm.ainvoke(
+        [
+            {
+                "role": "system",
+                "content": "You are a reflection agent that evaluates research completeness and extracts structured information.",
+            },
+            {
+                "role": "user",
+                "content": reflection_prompt,
+            },
+        ]
+    )
+    
+    # Cast to ensure type safety
+    reflection_output = cast(ReflectionOutput, reflection_result)
+    
+    # Prepare the state update
+    state_update = {
+        "structured_info": reflection_output.person_info,
+        "continue_research": reflection_output.continue_research,
+    }
+    
+    # If research is complete, prepare the output state
+    if not reflection_output.continue_research:
+        state_update["person_info"] = reflection_output.person_info
+        state_update["research_notes"] = consolidated_notes
+        state_update["completeness_assessment"] = reflection_output.completeness_assessment
+    
+    return state_update
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -167,5 +230,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
