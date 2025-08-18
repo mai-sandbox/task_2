@@ -1,3 +1,5 @@
+"""Graph module for the people research agent workflow."""
+
 import asyncio
 import json
 from typing import Any, Literal, cast
@@ -263,3 +265,4 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
