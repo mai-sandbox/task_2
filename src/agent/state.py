@@ -28,7 +28,7 @@ class StructuredPersonData(BaseModel):
     """Current company the person works at."""
     role: Optional[str] = None
     """Current job title/role."""
-    prior_companies: list[str] = field(default_factory=list)
+    prior_companies: list[str] = []
     """List of previous companies the person has worked at."""
 
 
@@ -59,5 +59,6 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
 
 
