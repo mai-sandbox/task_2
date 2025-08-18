@@ -9,11 +9,8 @@ import os
 import sys
 from typing import Optional
 
-# Add src directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-
-# Import the compiled graph from the agent module
-from agent.graph import graph
+# Import the compiled graph from the src.agent module
+from src.agent.graph import graph
 
 # Export the graph as 'app' for LangGraph deployment
 # This is the standard variable name expected by LangGraph platform
@@ -79,3 +76,4 @@ if __name__ == "__main__":
     print(f"- Entry point: START → generate_queries")
     print(f"- Workflow: generate_queries → research_person → reflection → [conditional routing]")
     print("\nThe agent is ready for deployment!")
+
