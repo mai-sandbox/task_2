@@ -130,6 +130,60 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze research notes and determine if more research is needed.
+    
+    This function:
+    1. Analyzes the completed research notes
+    2. Extracts structured information about the person
+    3. Evaluates if the information is satisfactory
+    4. Decides whether to continue researching or finish
+    """
+    
+    # Format all completed notes into a single string
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Create structured LLM with OutputState schema
+    structured_llm = claude_3_5_sonnet.with_structured_output(OutputState)
+    
+    # Format the reflection prompt
+    reflection_instructions = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=all_notes
+    )
+    
+    # Get structured output from the LLM
+    result = cast(
+        OutputState,
+        structured_llm.invoke(
+            [
+                {
+                    "role": "system",
+                    "content": "You are a research analyst reviewing and structuring professional information.",
+                },
+                {
+                    "role": "user",
+                    "content": reflection_instructions,
+                },
+            ]
+        ),
+    )
+    
+    # Return the structured output as a dictionary
+    return result.model_dump()
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,3 +200,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
