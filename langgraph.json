@@ -6,5 +6,16 @@
     "people_research_agent": "./src/agent/graph.py:graph"
   },
   "env": ".env",
-  "python_version": "3.11"
+  "python_version": "3.11",
+  "dockerfile_lines": [
+    "RUN pip install --no-cache-dir -e ."
+  ],
+  "environment": {
+    "ANTHROPIC_API_KEY": null,
+    "TAVILY_API_KEY": null,
+    "LANGSMITH_API_KEY": null,
+    "LANGSMITH_TRACING": "true",
+    "LANGSMITH_PROJECT": "people-research-agent"
+  }
 }
+
