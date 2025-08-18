@@ -10,7 +10,7 @@ from langgraph import START, END, StateGraph
 from pydantic import BaseModel, Field
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
+from agent.state import InputState, OutputState, OverallState, PersonInfo
 from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
     REFLECTION_PROMPT,
@@ -146,3 +146,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
