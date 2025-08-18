@@ -44,6 +44,20 @@ class InputState:
 
 
 @dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the structured data returned by the graph."""
+
+    structured_data: StructuredPersonData
+    "Structured person data extracted from research."
+    
+    reflection_notes: str
+    "Analysis and reasoning from the reflection step."
+    
+    research_complete: bool
+    "Whether the research process is considered complete."
+
+
+@dataclass(kw_only=True)
 class OverallState:
     """Input state defines the interface between the graph and the user (external API)."""
 
@@ -59,6 +73,7 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
 
 
 
