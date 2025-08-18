@@ -84,7 +84,7 @@ def test_state_classes():
         
         # Test InputState
         input_state = InputState(person=person)
-        print(f"  ✓ InputState instantiated with person: {input_state['person'].name}")
+        print(f"  ✓ InputState instantiated with person: {input_state.person.name}")
         
         # Test OutputState
         output_state = OutputState(
@@ -180,5 +180,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 
