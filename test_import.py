@@ -98,10 +98,8 @@ def test_state_classes():
         # Test OverallState
         overall_state = OverallState(
             person=person,
-            queries=[],
-            query_results=[],
-            completed_notes=[],
-            extraction_schema=output_state
+            search_queries=[],
+            completed_notes=[]
         )
         print(f"  ✓ OverallState instantiated successfully")
         
@@ -180,6 +178,7 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 
 
