@@ -48,3 +48,48 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with reviewing and structuring information about a person based on research notes.
+
+You have completed research notes about: {person}
+
+<research_notes>
+{completed_notes}
+</research_notes>
+
+<user_notes>
+{user_notes}
+</user_notes>
+
+Your task is to:
+
+1. **Extract Structured Information** - Carefully analyze the research notes and extract:
+   - Years of experience: Calculate or estimate total years of professional experience
+   - Current company: Identify where the person currently works
+   - Current role: Determine their current job title or position
+   - Prior companies: List all previous companies they've worked at
+
+2. **Evaluate Completeness** - Assess how complete the research is:
+   - Give a completeness score from 0.0 to 1.0 based on:
+     * 0.0-0.3: Missing most critical information
+     * 0.4-0.6: Have some information but missing key details
+     * 0.7-0.8: Most information present but some gaps
+     * 0.9-1.0: Comprehensive information available
+   
+3. **Determine if More Research is Needed**:
+   - Set needs_more_research to true if:
+     * Missing current company or role information
+     * No clear career history or timeline
+     * Years of experience cannot be determined
+     * Less than 70% completeness score
+   - Set to false if you have sufficient information about their professional background
+
+4. **Provide Clear Reasoning**:
+   - If more research is needed: Specify exactly what information is missing and what should be searched for
+   - If research is complete: Explain why the current information is sufficient
+   - Be specific about gaps in the data and suggest search strategies if applicable
+
+Focus on extracting factual information from the notes. If information is not explicitly stated or cannot be reasonably inferred, mark it as missing rather than guessing.
+
+Remember: The goal is to have a comprehensive professional profile with career trajectory, experience level, and employment history."""
+
