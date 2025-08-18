@@ -1,3 +1,9 @@
+"""Configuration module for the people research agent.
+
+This module defines the Configuration dataclass that manages configurable
+parameters for the research agent, including search query limits and result limits.
+"""
+
 import os
 from dataclasses import dataclass, fields
 from typing import Any, Optional

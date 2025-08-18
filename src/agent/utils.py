@@ -1,8 +1,15 @@
+"""Utility functions for the people research agent.
+
+This module provides helper functions for processing search results,
+formatting data, and managing research notes.
+"""
+
+
 def deduplicate_and_format_sources(
     search_response, max_tokens_per_source, include_raw_content=True
 ):
-    """
-    Takes either a single search response or list of responses from Tavily API and formats them.
+    """Deduplicate and format search response sources from Tavily API.
+
     Limits the raw_content to approximately max_tokens_per_source.
     include_raw_content specifies whether to include the raw_content from Tavily in the formatted string.
 
@@ -50,7 +57,6 @@ def deduplicate_and_format_sources(
             raw_content = source.get("raw_content", "")
             if raw_content is None:
                 raw_content = ""
-                print(f"Warning: No raw_content found for source {source['url']}")
             if len(raw_content) > char_limit:
                 raw_content = raw_content[:char_limit] + "... [truncated]"
             formatted_text += f"Full source content limited to {max_tokens_per_source} tokens: {raw_content}\n\n"
@@ -59,13 +65,13 @@ def deduplicate_and_format_sources(
 
 
 def format_all_notes(completed_notes: list[str]) -> str:
-    """Format a list of notes into a string"""
+    """Format a list of notes into a string."""
     formatted_str = ""
     for idx, people_notes in enumerate(completed_notes, 1):
         formatted_str += f"""
-{'='*60}
+{"=" * 60}
 People {idx}:
-{'='*60}
+{"=" * 60}
 Notes from research:
 {people_notes}"""
     return formatted_str
