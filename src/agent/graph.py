@@ -107,15 +107,15 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     search_tasks = []
     if state.search_queries:  # Type guard for Optional[list[str]]
         for query in state.search_queries:
-        search_tasks.append(
-            tavily_async_client.search(
-                query,
-                days=360,
-                max_results=max_search_results,
-                include_raw_content=True,
-                topic="general",
+            search_tasks.append(
+                tavily_async_client.search(
+                    query,
+                    days=360,
+                    max_results=max_search_results,
+                    include_raw_content=True,
+                    topic="general",
+                )
             )
-        )
 
     # Execute all searches concurrently
     search_docs = await asyncio.gather(*search_tasks)
@@ -220,6 +220,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
