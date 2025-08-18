@@ -21,7 +21,7 @@ __description__ = "Researcher agent that searches information about a person and
 def get_app():
     """Factory function to get the configured app instance.
     This can be useful for testing or custom initialization.
-    
+
     Returns:
         The compiled LangGraph application
     """
@@ -35,18 +35,18 @@ def validate_environment():
     """
     required_vars = [
         "ANTHROPIC_API_KEY",  # Required for Claude model
-        "TAVILY_API_KEY",      # Required for web search
+        "TAVILY_API_KEY",  # Required for web search
     ]
-    
+
     missing_vars = []
     for var in required_vars:
         if not os.environ.get(var):
             missing_vars.append(var)
-    
+
     if missing_vars:
         print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
         print("These should be configured in your deployment environment or .env file")
-    
+
     return len(missing_vars) == 0
 
 
@@ -65,10 +65,11 @@ if __name__ == "__main__":
         print("✓ All required environment variables are set")
     else:
         print("✗ Some environment variables are missing (see warnings above)")
-    
+
     print("\nGraph structure:")
     print(f"- Nodes: {list(app.nodes.keys())}")
     print("- Entry point: START → generate_queries")
-    print("- Workflow: generate_queries → research_person → reflection → [conditional routing]")
+    print(
+        "- Workflow: generate_queries → research_person → reflection → [conditional routing]"
+    )
     print("\nThe agent is ready for deployment!")
-

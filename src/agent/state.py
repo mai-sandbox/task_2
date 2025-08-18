@@ -22,14 +22,29 @@ class Person(BaseModel):
 
 class ReflectionResult(BaseModel):
     """Structured output from the reflection step."""
-    
-    years_experience: Optional[int] = Field(None, description="Total years of professional experience")
-    current_company: Optional[str] = Field(None, description="Current company where the person works")
+
+    years_experience: Optional[int] = Field(
+        None, description="Total years of professional experience"
+    )
+    current_company: Optional[str] = Field(
+        None, description="Current company where the person works"
+    )
     current_role: Optional[str] = Field(None, description="Current job title or role")
-    prior_companies: List[str] = Field(default_factory=list, description="List of previous companies the person has worked at")
-    completeness_score: float = Field(0.0, description="Score from 0-1 indicating how complete the research is")
-    needs_more_research: bool = Field(True, description="Whether more research is needed to gather complete information")
-    reasoning: str = Field("", description="Explanation of what information is missing or why research is complete")
+    prior_companies: List[str] = Field(
+        default_factory=list,
+        description="List of previous companies the person has worked at",
+    )
+    completeness_score: float = Field(
+        0.0, description="Score from 0-1 indicating how complete the research is"
+    )
+    needs_more_research: bool = Field(
+        True,
+        description="Whether more research is needed to gather complete information",
+    )
+    reasoning: str = Field(
+        "",
+        description="Explanation of what information is missing or why research is complete",
+    )
 
 
 @dataclass(kw_only=True)
@@ -46,25 +61,25 @@ class InputState:
 @dataclass(kw_only=True)
 class OutputState:
     """Output state containing the structured research results."""
-    
+
     years_experience: Optional[int] = field(default=None)
     "Total years of professional experience"
-    
+
     current_company: Optional[str] = field(default=None)
     "Current company where the person is employed"
-    
+
     current_role: Optional[str] = field(default=None)
     "Current job title or position"
-    
+
     prior_companies: List[str] = field(default_factory=list)
     "List of previous companies the person has worked at"
-    
+
     completeness_score: float = field(default=0.0)
     "Score from 0-1 indicating how complete the research is"
-    
+
     needs_more_research: bool = field(default=False)
     "Whether more research is needed to gather complete information"
-    
+
     reasoning: str = field(default="")
     "Explanation of what information is missing or why research is complete"
 
@@ -85,21 +100,19 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
-    
-    extraction_schema: Dict[str, str] = field(default_factory=lambda: {
-        "years_experience": "Total years of professional experience",
-        "current_company": "Current company where the person is employed",
-        "current_role": "Current job title or position",
-        "prior_companies": "List of previous companies the person has worked at",
-        "education": "Educational background and qualifications",
-        "skills": "Key skills and expertise areas",
-        "achievements": "Notable achievements and accomplishments"
-    })
+
+    extraction_schema: Dict[str, str] = field(
+        default_factory=lambda: {
+            "years_experience": "Total years of professional experience",
+            "current_company": "Current company where the person is employed",
+            "current_role": "Current job title or position",
+            "prior_companies": "List of previous companies the person has worked at",
+            "education": "Educational background and qualifications",
+            "skills": "Key skills and expertise areas",
+            "achievements": "Notable achievements and accomplishments",
+        }
+    )
     "Schema defining what information to extract about the person"
-    
+
     reflection_result: Optional[ReflectionResult] = field(default=None)
     "Result from the reflection step containing structured person data and research completeness assessment"
-
-
-
-

@@ -40,7 +40,6 @@ class Queries(BaseModel):
     )
 
 
-
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Generate search queries based on the user input and extraction schema."""
     # Get configuration
@@ -87,7 +86,9 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     return {"search_queries": query_list}
 
 
-async def research_person(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+async def research_person(
+    state: OverallState, config: RunnableConfig
+) -> dict[str, Any]:
     """Execute a multi-step web search and information extraction process.
 
     This function performs the following steps:
@@ -132,7 +133,7 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Analyze completed research notes and extract structured information.
-    
+
     This function:
     1. Processes all completed research notes
     2. Extracts structured person information (experience, companies, roles)
@@ -142,7 +143,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """
     # Format the completed notes for analysis
     formatted_notes = format_all_notes(state.completed_notes)
-    
+
     # Format person information for the prompt
     person_str = f"Email: {state.person.email}"
     if state.person.name:
@@ -153,17 +154,17 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
         person_str += f", Role: {state.person.role}"
     if state.person.linkedin:
         person_str += f", LinkedIn: {state.person.linkedin}"
-    
+
     # Create structured LLM with ReflectionResult output
     structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionResult)
-    
+
     # Format the reflection prompt
     reflection_prompt = REFLECTION_PROMPT.format(
         person=person_str,
         completed_notes=formatted_notes,
-        user_notes=state.user_notes or "No additional notes provided"
+        user_notes=state.user_notes or "No additional notes provided",
     )
-    
+
     # Get structured reflection result
     reflection_result = cast(
         ReflectionResult,
@@ -180,14 +181,14 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
             ]
         ),
     )
-    
+
     # Return the reflection result to update the state
     return {"reflection_result": reflection_result}
 
 
 def should_continue_research(state: OverallState) -> Literal["generate_queries", "end"]:
     """Determine whether to continue research or end based on reflection results.
-    
+
     This routing function checks the reflection_result to decide:
     - If needs_more_research is True: Route back to generate_queries for another iteration
     - If needs_more_research is False: Route to END to complete the workflow
@@ -217,15 +218,8 @@ builder.add_edge("research_person", "reflection")
 builder.add_conditional_edges(
     "reflection",
     should_continue_research,
-    {
-        "generate_queries": "generate_queries",
-        "end": END
-    }
+    {"generate_queries": "generate_queries", "end": END},
 )
 
 # Compile
 graph = builder.compile()
-
-
-
-

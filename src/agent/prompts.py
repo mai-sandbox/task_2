@@ -92,4 +92,3 @@ Your task is to:
 Focus on extracting factual information from the notes. If information is not explicitly stated or cannot be reasonably inferred, mark it as missing rather than guessing.
 
 Remember: The goal is to have a comprehensive professional profile with career trajectory, experience level, and employment history."""
-
