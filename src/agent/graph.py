@@ -130,6 +130,82 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionOutput(BaseModel):
+    """Structured output from the reflection analysis."""
+    
+    structured_data: dict[str, Any] = Field(
+        description="Extracted structured person data"
+    )
+    completeness_assessment: str = Field(
+        description="Assessment of information quality and completeness"
+    )
+    should_continue_research: bool = Field(
+        description="Whether additional research is needed"
+    )
+    reasoning: str = Field(
+        description="Detailed explanation of the decision"
+    )
+
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and determine if additional research is needed.
+    
+    This function:
+    1. Uses the REFLECTION_PROMPT to analyze research notes
+    2. Extracts structured person data (years of experience, current company, role, prior companies)
+    3. Assesses information completeness
+    4. Decides whether to continue research with detailed reasoning
+    5. Returns structured output and research continuation decision
+    """
+    try:
+        # Format person information for the prompt
+        person_str = f"Email: {state.person.email}"
+        if state.person.name:
+            person_str += f", Name: {state.person.name}"
+        if state.person.linkedin:
+            person_str += f", LinkedIn: {state.person.linkedin}"
+        if state.person.role:
+            person_str += f", Role: {state.person.role}"
+        if state.person.company:
+            person_str += f", Company: {state.person.company}"
+
+        # Format completed notes
+        formatted_notes = format_all_notes(state.completed_notes)
+        
+        # Create structured LLM for JSON output
+        structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+        
+        # Format the reflection prompt
+        reflection_prompt = REFLECTION_PROMPT.format(
+            person=person_str,
+            completed_notes=formatted_notes
+        )
+        
+        # Get reflection analysis
+        reflection_result = await structured_llm.ainvoke(reflection_prompt)
+        
+        # Extract structured data and update state
+        structured_data = reflection_result.structured_data
+        reflection_notes = f"Assessment: {reflection_result.completeness_assessment}\n\nReasoning: {reflection_result.reasoning}"
+        
+        return {
+            "reflection_notes": reflection_notes,
+            "should_continue_research": reflection_result.should_continue_research,
+            # Store structured data for potential output
+            "completed_notes": [f"REFLECTION ANALYSIS:\n{reflection_notes}\n\nEXTRACTED DATA:\n{json.dumps(structured_data, indent=2)}"]
+        }
+        
+    except Exception as e:
+        # Error handling - default to continuing research if reflection fails
+        error_msg = f"Reflection analysis failed: {str(e)}. Defaulting to continue research."
+        return {
+            "reflection_notes": error_msg,
+            "should_continue_research": True,
+            "completed_notes": [f"REFLECTION ERROR: {error_msg}"]
+        }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,3 +222,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
