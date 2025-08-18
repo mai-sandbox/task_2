@@ -1,0 +1,23 @@
+{
+  "dependencies": [
+    "langgraph>=0.2.52",
+    "langsmith>=0.1.147",
+    "langchain-community>=0.3.8",
+    "tavily-python>=0.5.0",
+    "langchain_anthropic>=0.3.0"
+  ],
+  "graphs": {
+    "people_research_agent": {
+      "path": "src.agent.graph:graph",
+      "description": "People research agent with reflection capabilities that searches for information about a person and returns structured data including years of experience, current company, role, and prior companies."
+    }
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": null,
+    "TAVILY_API_KEY": null,
+    "LANGSMITH_API_KEY": null,
+    "LANGSMITH_TRACING": "true"
+  },
+  "dockerfile_lines": [],
+  "python_version": "3.11"
+}
