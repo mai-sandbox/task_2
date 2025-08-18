@@ -264,13 +264,14 @@ builder.add_conditional_edges(
     "reflection",
     should_continue_research,
     {
-        "research_person": "generate_queries",  # If more research needed, go back to generate queries
+        "generate_queries": "generate_queries",  # If more research needed, go back to generate queries
         END: END  # If satisfactory, end the workflow
     }
 )
 
 # Compile
 graph = builder.compile()
+
 
 
 
