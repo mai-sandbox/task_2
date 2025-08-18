@@ -1,3 +1,5 @@
+"""State module for the people research agent."""
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Optional
@@ -97,3 +99,4 @@ class OverallState:
 
     _missing_information: list[str] = field(default_factory=list)
     "Internal list of missing information identified during reflection."
+
