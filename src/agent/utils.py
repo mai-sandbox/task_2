@@ -1,3 +1,10 @@
+"""Utility functions for the people research agent.
+
+This module provides helper functions for processing search results,
+formatting data, and managing research notes.
+"""
+
+
 def deduplicate_and_format_sources(
     search_response, max_tokens_per_source, include_raw_content=True
 ):
@@ -68,3 +75,4 @@ People {idx}:
 Notes from research:
 {people_notes}"""
     return formatted_str
+
