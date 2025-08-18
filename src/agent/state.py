@@ -1,3 +1,8 @@
+"""State management module for the people research agent.
+
+This module defines all state classes used in the LangGraph workflow, including
+input/output states and the overall state that manages the research process.
+"""
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Optional
@@ -87,6 +92,7 @@ class OverallState:
     
     should_continue_research: bool = field(default=True)
     "Whether additional research is needed based on reflection analysis"
+
 
 
 
