@@ -3,6 +3,7 @@
 This module defines the Configuration dataclass that manages configurable
 parameters for the research agent, including search query limits and result limits.
 """
+
 import os
 from dataclasses import dataclass, fields
 from typing import Any, Optional
@@ -31,4 +32,3 @@ class Configuration:
             if f.init
         }
         return cls(**{k: v for k, v in values.items() if v})
-

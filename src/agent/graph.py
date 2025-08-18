@@ -3,6 +3,7 @@
 This module implements the LangGraph workflow for researching people, including
 query generation, web search, information extraction, and reflection capabilities.
 """
+
 import asyncio
 import json
 from typing import Any, Literal, cast
@@ -41,11 +42,10 @@ tavily_async_client = AsyncTavilyClient()
 
 class Queries(BaseModel):
     """Pydantic model for structured query generation output."""
-    
+
     queries: list[str] = Field(
         description="List of search queries.",
     )
-
 
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
@@ -94,7 +94,9 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     return {"search_queries": query_list}
 
 
-async def research_person(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+async def research_person(
+    state: OverallState, config: RunnableConfig
+) -> dict[str, Any]:
     """Execute a multi-step web search and information extraction process.
 
     This function performs the following steps:
@@ -139,7 +141,7 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 class ReflectionOutput(BaseModel):
     """Structured output from the reflection analysis."""
-    
+
     structured_data: dict[str, Any] = Field(
         description="Extracted structured person data"
     )
@@ -149,14 +151,12 @@ class ReflectionOutput(BaseModel):
     should_continue_research: bool = Field(
         description="Whether additional research is needed"
     )
-    reasoning: str = Field(
-        description="Detailed explanation of the decision"
-    )
+    reasoning: str = Field(description="Detailed explanation of the decision")
 
 
 async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Analyze completed research notes and determine if additional research is needed.
-    
+
     This function:
     1. Uses the REFLECTION_PROMPT to analyze research notes
     2. Extracts structured person data (years of experience, current company, role, prior companies)
@@ -178,50 +178,53 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
 
         # Format completed notes
         formatted_notes = format_all_notes(state.completed_notes)
-        
+
         # Create structured LLM for JSON output
         structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
-        
+
         # Format the reflection prompt
         reflection_prompt = REFLECTION_PROMPT.format(
-            person=person_str,
-            completed_notes=formatted_notes
+            person=person_str, completed_notes=formatted_notes
         )
-        
+
         # Get reflection analysis
         reflection_result = await structured_llm.ainvoke(reflection_prompt)
-        
+
         # Extract structured data and update state
         structured_data = reflection_result.structured_data
         reflection_notes = f"Assessment: {reflection_result.completeness_assessment}\n\nReasoning: {reflection_result.reasoning}"
-        
+
         return {
             "reflection_notes": reflection_notes,
             "should_continue_research": reflection_result.should_continue_research,
             # Store structured data for potential output
-            "completed_notes": [f"REFLECTION ANALYSIS:\n{reflection_notes}\n\nEXTRACTED DATA:\n{json.dumps(structured_data, indent=2)}"]
+            "completed_notes": [
+                f"REFLECTION ANALYSIS:\n{reflection_notes}\n\nEXTRACTED DATA:\n{json.dumps(structured_data, indent=2)}"
+            ],
         }
-        
+
     except Exception as e:
         # Error handling - default to continuing research if reflection fails
-        error_msg = f"Reflection analysis failed: {str(e)}. Defaulting to continue research."
+        error_msg = (
+            f"Reflection analysis failed: {str(e)}. Defaulting to continue research."
+        )
         return {
             "reflection_notes": error_msg,
             "should_continue_research": True,
-            "completed_notes": [f"REFLECTION ERROR: {error_msg}"]
+            "completed_notes": [f"REFLECTION ERROR: {error_msg}"],
         }
 
 
 def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
     """Conditional edge function that determines whether to continue research or end.
-    
+
     Routes based on the reflection analysis:
     - If should_continue_research is True: route back to "generate_queries" for another research iteration
     - If should_continue_research is False: route to "END" to complete the workflow
-    
+
     Args:
         state: The current OverallState containing reflection analysis results
-        
+
     Returns:
         "generate_queries" if more research is needed, "END" if research is complete
     """
@@ -251,17 +254,8 @@ builder.add_edge("research_person", "reflection")
 builder.add_conditional_edges(
     "reflection",
     should_continue_research,
-    {
-        "generate_queries": "generate_queries",
-        "END": END
-    }
+    {"generate_queries": "generate_queries", "END": END},
 )
 
 # Compile
 graph = builder.compile()
-
-
-
-
-
-

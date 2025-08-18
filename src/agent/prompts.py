@@ -101,5 +101,3 @@ Please respond in the following JSON format:
 }}
 
 Focus on extracting factual information from the research notes. If information is not clearly stated or is ambiguous, mark it as null rather than making assumptions."""
-
-
