@@ -1,3 +1,9 @@
+"""Prompt templates for the people research agent.
+
+This module contains all prompt templates used by the research agent,
+including query generation, information extraction, and reflection prompts.
+"""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -95,4 +101,5 @@ Please respond in the following JSON format:
 }}
 
 Focus on extracting factual information from the research notes. If information is not clearly stated or is ambiguous, mark it as null rather than making assumptions."""
+
 
