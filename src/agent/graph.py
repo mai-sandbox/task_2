@@ -31,7 +31,11 @@ claude_3_5_sonnet = ChatAnthropic(
 
 # Search
 
-tavily_async_client = AsyncTavilyClient()
+# Initialize Tavily client - will use TAVILY_API_KEY from environment
+# The API key is required at runtime, not at import time
+import os
+tavily_api_key = os.getenv("TAVILY_API_KEY", "dummy_key_for_import")
+tavily_async_client = AsyncTavilyClient(api_key=tavily_api_key)
 
 
 class Queries(BaseModel):
@@ -220,6 +224,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
