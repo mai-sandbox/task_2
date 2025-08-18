@@ -167,6 +167,70 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Evaluate research completeness and decide whether to continue or finish.
+    
+    This function:
+    1. Reviews all completed research notes
+    2. Extracts structured information (years of experience, companies, role)
+    3. Evaluates completeness of the research
+    4. Decides whether to continue research or finish
+    """
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Format all completed notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for decision making
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    # Prepare the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
+        completed_notes=formatted_notes
+    )
+    
+    # Get the reflection decision
+    decision = await structured_llm.ainvoke([
+        {
+            "role": "system",
+            "content": "You are a research quality evaluator. Analyze the research notes and make a decision about whether to continue or finish the research process."
+        },
+        {
+            "role": "user",
+            "content": reflection_prompt
+        }
+    ])
+    
+    # Prepare the return state update
+    state_update = {
+        "years_of_experience": decision.years_of_experience,
+        "current_company": decision.current_company,
+        "role": decision.role,
+        "prior_companies": decision.prior_companies,
+        "missing_information": decision.missing_information,
+        "reflection_decision": decision.decision,
+        "reflection_reasoning": decision.reasoning
+    }
+    
+    # If research is complete, mark it as such
+    if decision.decision == "FINISH_RESEARCH":
+        state_update["research_complete"] = True
+    
+    return state_update
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -183,4 +247,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
