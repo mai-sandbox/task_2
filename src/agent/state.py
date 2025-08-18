@@ -19,6 +19,31 @@ class Person(BaseModel):
     """The current title of the person."""
 
 
+class OutputState(BaseModel):
+    """Output state containing structured information extracted from research."""
+    
+    years_of_experience: Optional[int] = None
+    """Total years of professional experience."""
+    
+    current_company: Optional[str] = None
+    """Current company where the person works."""
+    
+    current_role: Optional[str] = None
+    """Current job title or role."""
+    
+    prior_companies: Optional[list[str]] = None
+    """List of previous companies the person has worked at."""
+    
+    research_complete: bool = False
+    """Whether the research process is considered complete."""
+    
+    missing_information: Optional[list[str]] = None
+    """List of information that is still missing or unclear."""
+    
+    reflection_reasoning: Optional[str] = None
+    """Reasoning for whether research should continue or stop."""
+
+
 @dataclass(kw_only=True)
 class InputState:
     """Input state defines the interface between the graph and the user (external API)."""
@@ -46,4 +71,5 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
 
