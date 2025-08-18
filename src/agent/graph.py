@@ -234,6 +234,19 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     
     return output_update
 
+
+def route_reflection(state: OverallState) -> Literal["research_person", "__end__"]:
+    """Route based on reflection decision to either continue research or end."""
+    # Check the reflection decision
+    if state.reflection_decision == "continue":
+        # Need more research - go back to research_person
+        # Note: We'll reuse existing queries, but could also regenerate them
+        return "research_person"
+    else:
+        # Information is satisfactory - end the workflow
+        return "__end__"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -245,11 +258,25 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+# Define the workflow edges
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection
+# This creates the loop: reflection can route back to research_person or end
+builder.add_conditional_edges(
+    "reflection",
+    route_reflection,
+    {
+        "research_person": "research_person",
+        "__end__": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
 
 
