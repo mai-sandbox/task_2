@@ -180,6 +180,64 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research results and decide whether to continue or conclude.
+    
+    This function:
+    1. Structures the collected notes into the required format
+    2. Evaluates if the information is satisfactory
+    3. Identifies missing information
+    4. Decides whether to redo the research or conclude
+    """
+    
+    # Format all collected notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # First, extract structured information from the notes
+    structured_llm = claude_3_5_sonnet.with_structured_output(StructuredPersonInfo)
+    
+    extraction_prompt = f"""Based on the following research notes about {state.person.name or state.person.email}, 
+    extract and structure the professional information. If information is not found, indicate "Not found".
+    
+    Research Notes:
+    {formatted_notes}
+    
+    Please extract:
+    - Years of experience (calculate if possible from career history)
+    - Current company and role
+    - Prior companies with roles and duration
+    - Education background
+    - Key skills
+    - Notable achievements
+    """
+    
+    structured_info = await structured_llm.ainvoke(extraction_prompt)
+    
+    # Now evaluate the completeness and quality of the research
+    reflection_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=state.person.dict(),
+        structured_info=structured_info.dict(),
+        raw_notes=formatted_notes,
+        user_notes=state.user_notes or "No specific requirements provided"
+    )
+    
+    reflection_result = await reflection_llm.ainvoke(reflection_prompt)
+    
+    # Prepare the state update
+    state_update = {
+        "structured_output": structured_info.dict(),
+        "reflection_result": reflection_result.dict()
+    }
+    
+    # If research is not satisfactory and we have suggested queries, add them
+    if not reflection_result.is_satisfactory and reflection_result.suggested_queries:
+        state_update["search_queries"] = reflection_result.suggested_queries
+    
+    return state_update
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -196,5 +254,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
