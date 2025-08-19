@@ -1,0 +1,27 @@
+{
+  "dependencies": [
+    "langgraph>=0.2.52",
+    "langsmith>=0.1.147",
+    "langchain-community>=0.3.8",
+    "tavily-python>=0.5.0",
+    "langchain_anthropic>=0.3.0"
+  ],
+  "graphs": {
+    "people_research_agent": {
+      "path": "src.agent.graph:graph",
+      "description": "A people research agent that searches for information about a person and uses reflection to ensure comprehensive data collection",
+      "config_schema": "src.agent.configuration:Configuration"
+    }
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": null,
+    "TAVILY_API_KEY": null,
+    "LANGSMITH_API_KEY": null,
+    "LANGSMITH_TRACING": "true",
+    "LANGSMITH_PROJECT": "people-research-agent"
+  },
+  "dockerfile_lines": [
+    "RUN pip install --no-cache-dir -e ."
+  ],
+  "python_version": "3.9"
+}
