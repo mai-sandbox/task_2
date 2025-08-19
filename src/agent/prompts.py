@@ -1,3 +1,9 @@
+"""Prompt templates for the people research agent.
+
+This module contains all the prompt templates used by the research agent,
+including prompts for query generation, information extraction, and reflection analysis.
+"""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -90,4 +96,5 @@ Please respond with a structured analysis that includes:
 - suggested_queries: If continuing, suggest 2-3 specific search queries to fill the gaps
 
 Focus on the core professional information: work experience, current position, and career history. Be thorough but practical in your assessment."""
+
 
