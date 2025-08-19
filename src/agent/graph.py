@@ -184,10 +184,34 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
+    """Determine whether to continue research or end based on reflection decision."""
+    if state.reflection_decision is None:
+        # If no reflection decision yet, something went wrong - end the process
+        return "END"
+    
+    if state.reflection_decision.should_redo:
+        # If reflection indicates we should redo research, go back to generate_queries
+        return "generate_queries"
+    else:
+        # If reflection indicates research is satisfactory, end the process
+        return "END"
+
+
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        "END": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
 
