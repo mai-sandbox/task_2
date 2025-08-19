@@ -8,6 +8,7 @@ from langchain_core import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
 from langgraph import START, END, StateGraph
 from pydantic import BaseModel, Field
+from typing import List, Optional
 
 from agent.configuration import Configuration
 from agent.state import InputState, OutputState, OverallState
@@ -146,3 +147,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
