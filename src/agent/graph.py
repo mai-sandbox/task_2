@@ -41,6 +41,37 @@ class Queries(BaseModel):
     )
 
 
+class ReflectionOutput(BaseModel):
+    """Structured output from the reflection analysis."""
+    
+    years_experience: Optional[int] = Field(
+        default=None,
+        description="Total years of professional experience"
+    )
+    current_company: Optional[str] = Field(
+        default=None,
+        description="Current company where the person works"
+    )
+    current_role: Optional[str] = Field(
+        default=None,
+        description="Current job title or position"
+    )
+    prior_companies: List[str] = Field(
+        default_factory=list,
+        description="List of previous companies the person has worked at"
+    )
+    reflection_decision: Literal["continue", "finish"] = Field(
+        description="Decision whether to continue research or finish"
+    )
+    reflection_reasoning: str = Field(
+        description="Reasoning behind the reflection decision"
+    )
+    extracted_info: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional extracted information from research"
+    )
+
+
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Generate search queries based on the user input and extraction schema."""
@@ -147,4 +178,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
