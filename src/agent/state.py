@@ -100,4 +100,19 @@ class OverallState:
     "Decision from reflection step about research completeness"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final structured output of the research process."""
+
+    person_profile: PersonProfile
+    "Structured profile information extracted from research"
+
+    research_notes: str = field(default="")
+    "Formatted research notes from the process"
+
+    reflection_summary: str = field(default="")
+    "Summary of the reflection process and decisions made"
+
+
+
 
