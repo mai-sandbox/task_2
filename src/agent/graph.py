@@ -238,6 +238,29 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     
     return state_update
 
+
+def should_continue_research(state: OverallState) -> Literal["generate_queries", END]:
+    """Determine whether to continue research or end based on reflection results."""
+    
+    # If we don't have reflection results yet, something went wrong - end
+    if not state.reflection_result:
+        return END
+    
+    # Check if the research is satisfactory
+    reflection = state.reflection_result
+    if reflection.get("is_satisfactory", False):
+        # Research is complete and satisfactory
+        return END
+    
+    # Check if we have suggested queries to continue with
+    if reflection.get("suggested_queries") and len(reflection.get("suggested_queries", [])) > 0:
+        # We have more queries to explore
+        return "generate_queries"
+    
+    # No more queries or satisfied with current results
+    return END
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -251,9 +274,19 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        END: END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
 
 
