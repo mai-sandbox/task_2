@@ -48,3 +48,48 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with evaluating the completeness and quality of research notes about a person.
+
+PERSON BEING RESEARCHED: {person}
+
+RESEARCH NOTES:
+{notes}
+
+TARGET INFORMATION SCHEMA:
+{schema}
+
+Your task is to:
+1. Extract structured information from the research notes
+2. Evaluate the completeness and quality of the information
+3. Identify any missing critical information
+4. Determine if additional research is needed
+5. Suggest specific search queries if more research is required
+
+Focus particularly on these key areas:
+- Years of experience (try to calculate from career timeline)
+- Current company and role
+- Previous companies and roles with approximate dates
+- Career progression and timeline
+
+ANALYSIS CRITERIA:
+- Confidence Score: Rate from 0.0 to 1.0 based on:
+  - How complete is the information (0.8+ means most key fields are filled)
+  - How reliable are the sources
+  - How recent is the information
+  - How specific are the details (exact vs approximate)
+
+- Missing Information: Identify specific gaps like:
+  - "Years of experience not calculable from available data"
+  - "Current role unclear or outdated"
+  - "Employment gaps between [dates]"
+  - "No information about [specific company] role"
+
+- Additional Research Needed: Determine if confidence is below 0.7 OR critical information is missing
+
+- Search Query Suggestions: If more research needed, suggest 2-3 specific queries like:
+  - "[Person name] [current company] 2024" (for recent info)
+  - "[Person name] LinkedIn work experience" (for career details)
+  - "[Person name] [previous company] tenure dates" (for specific gaps)
+
+Provide your analysis in the structured format requested, being precise about what information is available vs missing."""

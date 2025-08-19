@@ -1,0 +1,78 @@
+{
+  "dependencies": [
+    "./pyproject.toml"
+  ],
+  "graphs": {
+    "people_researcher": {
+      "path": "src.agent.graph:graph",
+      "title": "People Research Agent",
+      "description": "An AI agent that researches information about people and returns structured data about their professional background, including years of experience, current company, role, and prior work history. Features reflection step to ensure completeness and accuracy.",
+      "input_schema": {
+        "title": "PeopleResearcherInput",
+        "type": "object",
+        "properties": {
+          "person": {
+            "title": "Person",
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string",
+                "description": "The name of the person"
+              },
+              "company": {
+                "title": "Company", 
+                "type": "string",
+                "description": "The current company of the person"
+              },
+              "linkedin": {
+                "title": "LinkedIn",
+                "type": "string",
+                "description": "The LinkedIn URL of the person"
+              },
+              "email": {
+                "title": "Email",
+                "type": "string",
+                "description": "The email of the person"
+              },
+              "role": {
+                "title": "Role",
+                "type": "string",
+                "description": "The current title of the person"
+              }
+            },
+            "required": ["email"]
+          },
+          "user_notes": {
+            "title": "User Notes",
+            "type": "object",
+            "description": "Any notes from the user to start the research process"
+          }
+        },
+        "required": ["person"]
+      },
+      "config_schema": {
+        "title": "Configuration",
+        "type": "object",
+        "properties": {
+          "max_search_queries": {
+            "title": "Max Search Queries",
+            "type": "integer",
+            "default": 3,
+            "description": "Maximum number of search queries to generate per research iteration"
+          },
+          "max_search_results": {
+            "title": "Max Search Results", 
+            "type": "integer",
+            "default": 3,
+            "description": "Maximum number of search results to retrieve per query"
+          }
+        }
+      }
+    }
+  },
+  "env": [
+    "ANTHROPIC_API_KEY",
+    "TAVILY_API_KEY"
+  ]
+}
