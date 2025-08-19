@@ -62,7 +62,7 @@ def deduplicate_and_format_sources(
 
 
 def format_all_notes(completed_notes: list[str]) -> str:
-    """Format a list of notes into a string"""
+    """Format a list of notes into a string."""
     formatted_str = ""
     for idx, people_notes in enumerate(completed_notes, 1):
         formatted_str += f"""
@@ -72,6 +72,7 @@ People {idx}:
 Notes from research:
 {people_notes}"""
     return formatted_str
+
 
 
 
