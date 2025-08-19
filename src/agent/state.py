@@ -43,6 +43,15 @@ class OverallState:
     search_queries: list[str] = field(default=None)
     "List of generated search queries to find relevant information"
 
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Number of years of professional experience",
+        "current_company": "Current employer/company name", 
+        "current_role": "Current job title/position",
+        "prior_companies": "List of previous companies worked at with roles and durations"
+    })
+    "Schema defining the structured format for information extraction during reflection"
+
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
