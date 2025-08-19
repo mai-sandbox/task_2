@@ -105,16 +105,28 @@ def test_reflection_loop():
     try:
         from agent.graph import ReflectionResult
         
-        # Test creating an instance
+        # Test creating an instance with correct fields
         test_result = ReflectionResult(
-            evaluation="Test evaluation",
-            missing_info="Test missing info",
-            decision="continue",
-            additional_search_suggestions=["test query 1", "test query 2"]
+            years_experience=5,
+            current_company="Test Company",
+            role="Software Engineer",
+            prior_companies=["Company A", "Company B"],
+            missing_information=["education", "certifications"],
+            quality_assessment="partial",
+            additional_search_suggestions=["test query 1", "test query 2"],
+            decision="continue"
         )
         
         print("   ✓ ReflectionResult model works correctly")
-        print(f"   ℹ Model fields: evaluation, missing_info, decision, additional_search_suggestions")
+        print(f"   ℹ Model fields: years_experience, current_company, role, prior_companies,")
+        print(f"                    missing_information, quality_assessment, additional_search_suggestions, decision")
+        
+        # Test with minimal required fields
+        minimal_result = ReflectionResult(
+            quality_assessment="complete",
+            decision="complete"
+        )
+        print("   ✓ ReflectionResult works with minimal required fields")
         
     except Exception as e:
         print(f"   ✗ Error with ReflectionResult model: {e}")
@@ -185,3 +197,4 @@ def test_reflection_loop():
 if __name__ == "__main__":
     success = test_reflection_loop()
     sys.exit(0 if success else 1)
+
