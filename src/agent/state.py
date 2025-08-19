@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
 import operator
+from dataclasses import dataclass, field
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel
 
