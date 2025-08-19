@@ -10,5 +10,12 @@
     "people_research_agent": "./src/agent/graph.py:graph"
   },
   "env": ".env",
-  "python_version": "3.9"
+  "python_version": "3.9",
+  "dockerfile_lines": [
+    "RUN pip install --no-cache-dir -e ."
+  ],
+  "config_schemas": {
+    "people_research_agent": "./src/agent/configuration.py:Configuration"
+  }
 }
+
