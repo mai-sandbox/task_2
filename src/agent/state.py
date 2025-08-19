@@ -50,10 +50,10 @@ class OverallState:
     person: Person
     "Person to research provided by the user."
 
-    user_notes: str = field(default=None)
+    user_notes: Optional[str] = field(default=None)
     "Any notes from the user to start the research process."
 
-    search_queries: list[str] = field(default=None)
+    search_queries: list[str] = field(default_factory=list)
     "List of generated search queries to find relevant information"
 
     # Add default values for required fields
@@ -99,6 +99,7 @@ class OutputState:
     
     research_notes: str = field(default="")
     "Consolidated research notes from all searches"
+
 
 
 
