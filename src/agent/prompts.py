@@ -48,3 +48,53 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality evaluator tasked with assessing the completeness and quality of information gathered about a person.
+
+You have collected the following research notes:
+<research_notes>
+{research_notes}
+</research_notes>
+
+The target information schema we're trying to populate is:
+<target_schema>
+{extraction_schema}
+</target_schema>
+
+Original person details:
+<person_details>
+{person_details}
+</person_details>
+
+Your task is to:
+1. Extract and structure the information from the research notes according to the target schema
+2. Evaluate the completeness and quality of the gathered information
+3. Identify any missing or incomplete information
+4. Determine if additional research is needed
+
+For each field in the schema, assess:
+- Is the information present and complete?
+- Is the information reliable and specific (not vague or assumed)?
+- What specific details are missing?
+
+Critical fields to prioritize:
+- Years of experience (should be a specific number or clear range)
+- Current company (must be explicitly stated, not assumed)
+- Current role/title (exact job title preferred)
+- Prior companies (should include company names, roles, and ideally durations)
+
+Decision criteria for continuing research:
+- CONTINUE if critical fields (experience, current company/role) are missing or unclear
+- CONTINUE if less than 60% of the schema fields have meaningful data
+- STOP if core professional information is complete and reliable
+- STOP if we have made 3+ research attempts (to avoid infinite loops)
+
+Provide your evaluation with:
+1. Structured extraction of available information
+2. List of missing/incomplete fields
+3. Confidence score (0-1) for information completeness
+4. Clear reasoning for your decision
+5. Specific search suggestions if research should continue
+
+Remember: Be strict about information quality - vague mentions or assumptions don't count as complete information."""
+
