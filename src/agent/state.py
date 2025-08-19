@@ -57,6 +57,22 @@ class OverallState:
         "achievements": "Notable accomplishments or awards"
     })
     "Schema defining the information we want to extract about the person"
+    
+    # Reflection analysis results
+    research_satisfaction: Optional[str] = field(default=None)
+    "Assessment of research completeness: 'satisfied', 'needs_more_research', or 'incomplete'"
+    
+    missing_information: list[str] = field(default_factory=list)
+    "List of information categories that are still missing or incomplete"
+    
+    reasoning: Optional[str] = field(default=None)
+    "Detailed reasoning for the satisfaction assessment and any decisions made"
+    
+    continue_research: Optional[bool] = field(default=None)
+    "Whether additional research should be conducted based on reflection analysis"
+    
+    extracted_info: Optional[dict[str, Any]] = field(default=None)
+    "Structured information extracted from research notes during reflection"
 
 
 @dataclass(kw_only=True)
@@ -98,6 +114,7 @@ class OutputState:
     
     completed_notes: list[str] = field(default_factory=list)
     "All research notes collected during the process."
+
 
 
 
