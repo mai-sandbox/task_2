@@ -51,7 +51,7 @@ class OverallState:
     )
     "Schema defining what information to extract about the person"
 
-    search_queries: list[str] = field(default=None)
+    search_queries: list[str] = field(default_factory=list)
     "List of generated search queries to find relevant information"
 
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
@@ -92,4 +92,5 @@ class OutputState:
 
     missing_information: Optional[list[str]] = field(default=None)
     "List of information that could not be found or needs verification"
+
 
