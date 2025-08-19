@@ -1,3 +1,5 @@
+"""Prompts module for the people research agent."""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -86,4 +88,5 @@ Consider the research INCOMPLETE if:
 - The notes are too vague or contradictory
 
 Base your decision on whether a reasonable professional summary can be created from the available information, not on having every possible detail."""
+
 
