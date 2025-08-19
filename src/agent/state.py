@@ -63,3 +63,21 @@ class OverallState:
     "Assessment of research completeness and decision on whether to continue"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final structured results returned by the graph."""
+    
+    person: Person
+    "The person that was researched"
+    
+    structured_research_results: dict[str, Any]
+    "Structured extraction of research findings including years of experience, current company, role, and prior companies"
+    
+    research_satisfaction_assessment: dict[str, Any]
+    "Assessment of research completeness including satisfaction level, missing information, and reasoning"
+    
+    completed_notes: list[str]
+    "All research notes collected during the process"
+
+
+
