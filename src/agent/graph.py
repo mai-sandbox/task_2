@@ -213,7 +213,8 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
                     years_match = re.search(r"\d+", years_line)
                     if years_match:
                         extracted_info["years_of_experience"] = int(years_match.group())
-                except:
+                except (ValueError, AttributeError):
+                    # Skip if unable to extract or convert numeric value
                     pass
 
         # Extract current company
@@ -307,3 +308,4 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
