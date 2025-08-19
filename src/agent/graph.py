@@ -243,8 +243,8 @@ def route_after_reflection(state: OverallState) -> Union[Literal["generate_queri
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
-    input=InputState,
-    output=OutputState,
+    input_schema=InputState,
+    output_schema=OutputState,
     config_schema=Configuration,
 )
 builder.add_node("generate_queries", generate_queries)
@@ -268,6 +268,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
