@@ -46,7 +46,12 @@ def test_agent_compilation():
             graph_obj = app.get_graph()
             print(f"   ✓ Graph structure accessible: {type(graph_obj)}")
             if hasattr(graph_obj, 'nodes'):
-                print(f"   ✓ Graph nodes: {list(graph_obj.nodes())}")
+                # nodes is a property/dict, not a method
+                nodes = graph_obj.nodes
+                if isinstance(nodes, dict):
+                    print(f"   ✓ Graph nodes: {list(nodes.keys())}")
+                else:
+                    print(f"   ✓ Graph nodes found (type: {type(nodes)})")
         else:
             print("   ℹ get_graph() method not available")
         
@@ -69,3 +74,4 @@ def test_agent_compilation():
 if __name__ == "__main__":
     success = test_agent_compilation()
     sys.exit(0 if success else 1)
+
