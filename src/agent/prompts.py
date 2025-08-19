@@ -99,5 +99,3 @@ Provide your evaluation with:
 5. Specific search suggestions if research should continue
 
 Remember: Be strict about information quality - vague mentions or assumptions don't count as complete information."""
-
-

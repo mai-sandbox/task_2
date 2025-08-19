@@ -5,7 +5,7 @@ def deduplicate_and_format_sources(
     search_response, max_tokens_per_source, include_raw_content=True
 ):
     """Format and deduplicate search responses from Tavily API.
-    
+
     Takes either a single search response or list of responses from Tavily API and formats them.
     Limits the raw_content to approximately max_tokens_per_source.
     include_raw_content specifies whether to include the raw_content from Tavily in the formatted string.
@@ -67,13 +67,9 @@ def format_all_notes(completed_notes: list[str]) -> str:
     formatted_str = ""
     for idx, people_notes in enumerate(completed_notes, 1):
         formatted_str += f"""
-{'='*60}
+{"=" * 60}
 People {idx}:
-{'='*60}
+{"=" * 60}
 Notes from research:
 {people_notes}"""
     return formatted_str
-
-
-
-
