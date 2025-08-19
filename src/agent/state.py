@@ -38,7 +38,7 @@ class OverallState:
     person: Person
     "Person to research provided by the user."
 
-    user_notes: str = field(default=None)
+    user_notes: str | None = field(default=None)
     "Any notes from the user to start the research process."
 
     extraction_schema: dict[str, Any] = field(
@@ -92,3 +92,4 @@ class OutputState:
 
     missing_information: Optional[list[str]] = field(default=None)
     "List of information that could not be found or needs verification"
+
