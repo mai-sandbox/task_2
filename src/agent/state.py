@@ -43,6 +43,53 @@ class OverallState:
     search_queries: list[str] = field(default=None)
     "List of generated search queries to find relevant information"
 
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Number of years of professional experience",
+        "current_company": "Current employer/company name", 
+        "current_role": "Current job title/position",
+        "prior_companies": "List of previous companies worked at with roles and durations"
+    })
+    "Schema defining the structured format for information extraction during reflection"
+
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
+    # Reflection results
+    structured_info: dict[str, Any] = field(default_factory=dict)
+    "Structured information extracted from research notes matching the extraction schema"
+
+    completeness_score: float = field(default=0.0)
+    "Score from 0-1 indicating how complete the extracted information is"
+
+    missing_information: list[str] = field(default_factory=list)
+    "List of information categories that are missing or incomplete"
+
+    should_continue: bool = field(default=True)
+    "Boolean indicating whether additional research should be conducted"
+
+    reasoning: str = field(default="")
+    "Explanation for the completeness assessment and decision to continue or finish"
+
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state represents the final result after reflection and evaluation."""
+
+    structured_info: dict[str, Any]
+    "Structured information extracted from research notes matching the extraction schema"
+
+    completeness_score: float
+    "Score from 0-1 indicating how complete the extracted information is"
+
+    missing_information: list[str]
+    "List of information categories that are missing or incomplete"
+
+    should_continue: bool
+    "Boolean indicating whether additional research should be conducted"
+
+    reasoning: str
+    "Explanation for the completeness assessment and decision to continue or finish"
+
+
+
