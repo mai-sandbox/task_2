@@ -48,3 +48,45 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are analyzing research notes about a person to extract structured information and determine if additional research is needed.
+
+Person being researched: {person}
+
+Current research notes:
+{notes}
+
+Your task is to:
+1. Extract structured information focusing on:
+   - Years of experience (total professional experience)
+   - Current company and role
+   - Prior companies with roles and approximate durations
+   - Education background
+   - Key skills/technologies
+   - Current location
+
+2. Evaluate completeness and decide whether to:
+   - COMPLETE: Information is sufficient for the user's needs
+   - SEARCH_MORE: Important information is missing and additional searches are warranted
+
+3. If SEARCH_MORE, suggest specific additional search queries to fill gaps
+
+Consider this complete if you have:
+- Current company and role clearly identified
+- At least 2-3 prior work experiences with companies and roles
+- A reasonable estimate of total years of experience
+- Some background information (education, skills, or location)
+
+Consider additional search needed if:
+- Current role/company is unclear or missing
+- Very limited work history (less than 2 previous positions)
+- No clear timeline or years of experience
+- Person seems senior but limited information available
+
+Provide a completeness score from 0.0 to 1.0 where:
+- 0.0-0.3: Very incomplete, definitely needs more research
+- 0.4-0.6: Partially complete, likely needs more research  
+- 0.7-0.8: Mostly complete, additional research optional
+- 0.9-1.0: Very complete, no additional research needed
+
+Be realistic about what information is available - don't mark as incomplete just because some details are missing if the core information is present."""
