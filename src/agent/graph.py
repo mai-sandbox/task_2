@@ -1,3 +1,5 @@
+"""Graph definition for the people research agent with reflection."""
+
 import asyncio
 import json
 from typing import Any, Literal, cast
@@ -258,6 +260,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph deployment compatibility
 app = graph
+
 
 
 
