@@ -225,12 +225,7 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
         }
 
 # Add nodes and edges
-builder = StateGraph(
-    OverallState,
-    input=InputState,
-    output=OutputState,
-    config_schema=Configuration,
-)
+builder = StateGraph(OverallState)
 builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
@@ -258,6 +253,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
