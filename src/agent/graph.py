@@ -130,6 +130,104 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and extract structured information.
+    
+    This function performs reflection on the research notes to:
+    1. Extract structured information about the person
+    2. Assess the completeness of the research
+    3. Determine if more research is needed
+    """
+    
+    # Format the completed notes
+    all_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f"\nName: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f"\nLinkedIn URL: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f"\nRole: {state.person.role}"
+    if state.person.company:
+        person_str += f"\nCompany: {state.person.company}"
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        completed_notes=all_notes,
+        person=person_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get reflection analysis from Claude
+    result = await claude_3_5_sonnet.ainvoke(reflection_prompt)
+    reflection_content = str(result.content)
+    
+    # Parse the reflection response to extract structured information
+    # This is a simplified parser - in production you might want more robust parsing
+    extracted_info = {}
+    needs_more_research = True
+    reasoning = ""
+    
+    try:
+        # Extract years of experience
+        if "Years of Experience:" in reflection_content:
+            years_line = reflection_content.split("Years of Experience:")[1].split("\n")[0].strip()
+            if years_line.lower() != "unknown" and years_line.lower() != "unclear":
+                try:
+                    # Extract numeric value from the line
+                    import re
+                    years_match = re.search(r'\d+', years_line)
+                    if years_match:
+                        extracted_info["years_of_experience"] = int(years_match.group())
+                except:
+                    pass
+        
+        # Extract current company
+        if "Current Company:" in reflection_content:
+            company_line = reflection_content.split("Current Company:")[1].split("\n")[0].strip()
+            if company_line.lower() not in ["unknown", "unclear"]:
+                extracted_info["current_company"] = company_line
+        
+        # Extract current role
+        if "Current Role:" in reflection_content:
+            role_line = reflection_content.split("Current Role:")[1].split("\n")[0].strip()
+            if role_line.lower() not in ["unknown", "unclear"]:
+                extracted_info["current_role"] = role_line
+        
+        # Extract prior companies
+        if "Prior Companies:" in reflection_content:
+            companies_line = reflection_content.split("Prior Companies:")[1].split("\n")[0].strip()
+            if companies_line.lower() not in ["unknown", "unclear"]:
+                extracted_info["prior_companies"] = companies_line
+        
+        # Determine if more research is needed
+        if "Needs More Research:" in reflection_content:
+            decision_line = reflection_content.split("Needs More Research:")[1].split("\n")[0].strip()
+            needs_more_research = decision_line.upper().startswith("YES")
+        
+        # Extract reasoning
+        if "Reasoning:" in reflection_content:
+            reasoning_section = reflection_content.split("Reasoning:")[1]
+            if "Suggested Next Steps:" in reasoning_section:
+                reasoning = reasoning_section.split("Suggested Next Steps:")[0].strip()
+            else:
+                reasoning = reasoning_section.strip()
+    
+    except Exception as e:
+        # If parsing fails, default to needing more research
+        reasoning = f"Failed to parse reflection response: {str(e)}"
+        needs_more_research = True
+    
+    return {
+        "reflection_result": extracted_info,
+        "needs_more_research": needs_more_research,
+        "reflection_reasoning": reasoning
+    }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,3 +244,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
