@@ -31,6 +31,8 @@ tavily_async_client = AsyncTavilyClient()
 
 
 class Queries(BaseModel):
+    """Model for search queries."""
+
     queries: list[str] = Field(
         description="List of search queries.",
     )
@@ -256,6 +258,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
