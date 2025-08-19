@@ -57,6 +57,18 @@ class OverallState:
         "notable_achievements": "Significant accomplishments, projects, or recognition"
     })
     "Schema defining the structured format for extracting person information"
+    
+    structured_info: Optional[PersonInfo] = field(default=None)
+    "Structured information extracted from research notes"
+    
+    reflection_result: Optional[ReflectionResult] = field(default=None)
+    "Result of the reflection process evaluating research completeness"
+    
+    research_iterations: int = field(default=0)
+    "Number of research iterations performed"
+    
+    should_continue: Optional[str] = field(default=None)
+    "Decision from reflection: 'continue' or 'end'"
 
 
 class PersonInfo(BaseModel):
@@ -121,6 +133,7 @@ class OutputState:
     
     research_iterations: int = field(default=1)
     """Number of research iterations performed."""
+
 
 
 
