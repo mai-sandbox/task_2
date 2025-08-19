@@ -58,7 +58,7 @@ class InputState:
 
 @dataclass(kw_only=True)
 class OverallState:
-    """Input state defines the interface between the graph and the user (external API)."""
+    """Overall state that contains all information throughout the research process."""
 
     person: Person
     "Person to research provided by the user."
@@ -72,4 +72,16 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+    
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Total years of professional experience",
+        "current_company": "Current company where the person works",
+        "current_role": "Current job title or position",
+        "prior_companies": "List of previous companies the person has worked at",
+        "education": "Educational background and qualifications",
+        "skills": "Key skills and expertise areas",
+        "notable_achievements": "Notable achievements or accomplishments"
+    })
+    "Schema defining what information to extract during research"
+
 
