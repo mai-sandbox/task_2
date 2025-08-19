@@ -57,6 +57,37 @@ class OverallState:
         "notable_achievements": "Significant accomplishments or projects"
     })
     "Schema defining the structured information to extract about the person"
+    
+    # Fields populated by reflection node
+    completeness_assessment: Optional[ResearchCompleteness] = field(default=None)
+    "Assessment of the research completeness from reflection"
+    
+    years_of_experience: Optional[int] = field(default=None)
+    "Total years of professional experience extracted from research"
+    
+    current_company: Optional[str] = field(default=None)
+    "Current employer/company extracted from research"
+    
+    current_role: Optional[str] = field(default=None)
+    "Current job title or position extracted from research"
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies extracted from research"
+    
+    education: Optional[str] = field(default=None)
+    "Educational background extracted from research"
+    
+    skills: List[str] = field(default_factory=list)
+    "Key skills extracted from research"
+    
+    notable_achievements: List[str] = field(default_factory=list)
+    "Notable achievements extracted from research"
+    
+    raw_notes: str = field(default="")
+    "Consolidated raw notes from all research iterations"
+    
+    research_iterations: int = field(default=0)
+    "Number of research iterations performed"
 
 
 class ResearchCompleteness(BaseModel):
@@ -105,6 +136,7 @@ class OutputState:
     
     research_iterations: int = field(default=0)
     "Number of research iterations performed"
+
 
 
 
