@@ -92,5 +92,3 @@ class OutputState:
 
     missing_information: Optional[list[str]] = field(default=None)
     "List of information that could not be found or needs verification"
-
-
