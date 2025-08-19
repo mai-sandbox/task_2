@@ -105,7 +105,7 @@ def verify_final_compilation():
         # Check key fields
         if hasattr(OverallState, '__annotations__'):
             state_fields = OverallState.__annotations__.keys()
-            required_fields = ['person', 'search_queries', 'research_notes', 'reflection_decision']
+            required_fields = ['person', 'search_queries', 'completed_notes', 'reflection_decision', 'extraction_schema', 'extracted_info']
             for field in required_fields:
                 if field in state_fields:
                     print(f"   ✓ OverallState has field '{field}'")
@@ -205,3 +205,4 @@ if __name__ == "__main__":
         print("\nTraceback:")
         traceback.print_exc()
         sys.exit(1)
+
