@@ -46,4 +46,20 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+    
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Number of years of professional work experience",
+        "current_company": "Current company or organization the person works for",
+        "current_role": "Current job title or position",
+        "prior_companies": "List of previous companies or organizations worked at with roles and timeframes"
+    })
+    "Schema defining the structured information to extract about the person"
+    
+    # Reflection state fields
+    structured_research_results: Optional[dict[str, Any]] = field(default=None)
+    "Structured extraction of research findings based on the schema"
+    
+    research_satisfaction_assessment: Optional[dict[str, Any]] = field(default=None)
+    "Assessment of research completeness and decision on whether to continue"
+
 
