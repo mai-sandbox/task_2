@@ -148,6 +148,68 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and determine if additional research is needed.
+    
+    This function performs reflection on the research notes by:
+    1. Converting notes to structured format matching the extraction schema
+    2. Evaluating information completeness on a 0-1 scale
+    3. Identifying missing information
+    4. Deciding whether to continue research or finish
+    5. Providing reasoning for the decision
+    """
+    
+    # Use Claude 3.5 Sonnet with structured output for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    
+    # Format completed notes for analysis
+    notes_str = format_all_notes(state.completed_notes)
+    
+    # Create reflection prompt
+    reflection_instructions = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=notes_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Execute reflection analysis
+    reflection_result = cast(
+        ReflectionOutput,
+        await structured_llm.ainvoke(
+            [
+                {
+                    "role": "system",
+                    "content": reflection_instructions,
+                },
+                {
+                    "role": "user", 
+                    "content": "Please analyze the research notes and provide your structured reflection according to the instructions.",
+                },
+            ]
+        ),
+    )
+    
+    # Return results in the format expected by the graph state
+    return {
+        "structured_info": reflection_result.structured_info,
+        "completeness_score": reflection_result.completeness_score,
+        "missing_information": reflection_result.missing_information,
+        "should_continue": reflection_result.should_continue,
+        "reasoning": reflection_result.reasoning,
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -164,5 +226,6 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
