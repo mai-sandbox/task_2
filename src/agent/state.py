@@ -19,6 +19,19 @@ class Person(BaseModel):
     """The current title of the person."""
 
 
+class ExtractedInfo(BaseModel):
+    """Structured information extracted about a person's professional background."""
+    
+    years_experience: Optional[int] = None
+    """Total years of professional experience."""
+    current_company: Optional[str] = None
+    """Current company where the person works."""
+    role: Optional[str] = None
+    """Current role or job title."""
+    prior_companies: List[str] = []
+    """List of previous companies the person has worked at."""
+
+
 @dataclass(kw_only=True)
 class InputState:
     """Input state defines the interface between the graph and the user (external API)."""
@@ -46,4 +59,5 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
 
