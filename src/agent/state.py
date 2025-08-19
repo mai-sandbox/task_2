@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
+from typing import Any, Optional, Annotated, List
 import operator
 
 from pydantic import BaseModel
@@ -57,4 +57,5 @@ class OverallState:
         "notable_achievements": "Significant accomplishments, projects, or recognition"
     })
     "Schema defining the structured format for extracting person information"
+
 
