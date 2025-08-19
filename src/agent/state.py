@@ -65,3 +65,21 @@ class OverallState:
     "Result of the reflection step including satisfaction assessment and reasoning"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final structured output from the research agent."""
+    
+    person: Person
+    "The person that was researched"
+    
+    structured_output: Dict[str, Any] = field(default_factory=dict)
+    "Final structured information about the person including years of experience, companies, roles, etc."
+    
+    research_quality: Optional[Dict[str, Any]] = field(default=None)
+    "Assessment of research quality and completeness"
+    
+    raw_notes: Optional[List[str]] = field(default=None)
+    "Raw research notes collected during the process"
+
+
+
