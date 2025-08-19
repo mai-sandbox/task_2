@@ -48,3 +48,57 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with analyzing research notes about a person and extracting structured information.
+
+Here are the research notes from web searches:
+<research_notes>
+{completed_notes}
+</research_notes>
+
+Here is the person being researched:
+<person_info>
+{person}
+</person_info>
+
+Your task is to analyze these notes and extract the following structured information:
+
+<extraction_schema>
+{extraction_schema}
+</extraction_schema>
+
+Please provide your analysis in the following format:
+
+## EXTRACTED INFORMATION
+
+**Years of Experience:** [Extract total years of professional work experience, or "Unknown" if not found]
+
+**Current Company:** [Extract current employer/company name, or "Unknown" if not found]
+
+**Current Role:** [Extract current job title/position, or "Unknown" if not found]
+
+**Prior Companies:** [List previous companies with roles and duration if available, or "Unknown" if not found]
+
+## ANALYSIS
+
+**Information Completeness:** [Rate from 1-10 how complete the information is]
+
+**Missing Information:** [List specific information that is missing or unclear]
+
+**Research Quality:** [Assess if the current research provides sufficient detail]
+
+## DECISION
+
+**Needs More Research:** [YES/NO - whether additional research is needed]
+
+**Reasoning:** [Explain your decision - why more research is or isn't needed]
+
+**Suggested Next Steps:** [If more research is needed, suggest what specific information to search for]
+
+Guidelines:
+1. Be precise and factual - only extract information that is clearly stated in the notes
+2. If information is ambiguous or unclear, mark it as "Unclear" and suggest more research
+3. Consider the completeness and reliability of the information found
+4. Recommend more research if key information is missing or if there are inconsistencies
+5. Focus on professional work experience, current employment, and career history"""
+
