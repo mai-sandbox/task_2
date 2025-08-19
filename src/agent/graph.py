@@ -31,6 +31,7 @@ claude_3_5_sonnet = ChatAnthropic(
 
 # Search
 
+
 def get_tavily_client():
     """Get Tavily client instance (lazy initialization)."""
     return AsyncTavilyClient()
@@ -40,7 +41,6 @@ class Queries(BaseModel):
     queries: list[str] = Field(
         description="List of search queries.",
     )
-
 
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
@@ -89,7 +89,9 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     return {"search_queries": query_list}
 
 
-async def research_person(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+async def research_person(
+    state: OverallState, config: RunnableConfig
+) -> dict[str, Any]:
     """Execute a multi-step web search and information extraction process.
 
     This function performs the following steps:
@@ -135,7 +137,7 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Analyze completed research notes and extract structured information.
-    
+
     This function performs reflection on the research notes to:
     1. Extract structured information about the person
     2. Assess the completeness of the research
@@ -143,7 +145,7 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     """
     # Format the completed notes
     all_notes = format_all_notes(state.completed_notes)
-    
+
     # Format person information
     person_str = f"Email: {state.person.email}"
     if state.person.name:
@@ -154,61 +156,76 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
         person_str += f"\nRole: {state.person.role}"
     if state.person.company:
         person_str += f"\nCompany: {state.person.company}"
-    
+
     # Create reflection prompt
     reflection_prompt = REFLECTION_PROMPT.format(
         completed_notes=all_notes,
         person=person_str,
-        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
     )
-    
+
     # Get reflection analysis from Claude
     result = await claude_3_5_sonnet.ainvoke(reflection_prompt)
     reflection_content = str(result.content)
-    
+
     # Parse the reflection response to extract structured information
     # This is a simplified parser - in production you might want more robust parsing
     extracted_info = {}
     needs_more_research = True
     reasoning = ""
-    
+
     try:
         # Extract years of experience
         if "Years of Experience:" in reflection_content:
-            years_line = reflection_content.split("Years of Experience:")[1].split("\n")[0].strip()
+            years_line = (
+                reflection_content.split("Years of Experience:")[1]
+                .split("\n")[0]
+                .strip()
+            )
             if years_line.lower() != "unknown" and years_line.lower() != "unclear":
                 try:
                     # Extract numeric value from the line
                     import re
-                    years_match = re.search(r'\d+', years_line)
+
+                    years_match = re.search(r"\d+", years_line)
                     if years_match:
                         extracted_info["years_of_experience"] = int(years_match.group())
                 except:
                     pass
-        
+
         # Extract current company
         if "Current Company:" in reflection_content:
-            company_line = reflection_content.split("Current Company:")[1].split("\n")[0].strip()
+            company_line = (
+                reflection_content.split("Current Company:")[1].split("\n")[0].strip()
+            )
             if company_line.lower() not in ["unknown", "unclear"]:
                 extracted_info["current_company"] = company_line
-        
+
         # Extract current role
         if "Current Role:" in reflection_content:
-            role_line = reflection_content.split("Current Role:")[1].split("\n")[0].strip()
+            role_line = (
+                reflection_content.split("Current Role:")[1].split("\n")[0].strip()
+            )
             if role_line.lower() not in ["unknown", "unclear"]:
                 extracted_info["current_role"] = role_line
-        
+
         # Extract prior companies
         if "Prior Companies:" in reflection_content:
-            companies_line = reflection_content.split("Prior Companies:")[1].split("\n")[0].strip()
+            companies_line = (
+                reflection_content.split("Prior Companies:")[1].split("\n")[0].strip()
+            )
             if companies_line.lower() not in ["unknown", "unclear"]:
                 extracted_info["prior_companies"] = companies_line
-        
+
         # Determine if more research is needed
         if "Needs More Research:" in reflection_content:
-            decision_line = reflection_content.split("Needs More Research:")[1].split("\n")[0].strip()
+            decision_line = (
+                reflection_content.split("Needs More Research:")[1]
+                .split("\n")[0]
+                .strip()
+            )
             needs_more_research = decision_line.upper().startswith("YES")
-        
+
         # Extract reasoning
         if "Reasoning:" in reflection_content:
             reasoning_section = reflection_content.split("Reasoning:")[1]
@@ -216,22 +233,22 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
                 reasoning = reasoning_section.split("Suggested Next Steps:")[0].strip()
             else:
                 reasoning = reasoning_section.strip()
-    
+
     except Exception as e:
         # If parsing fails, default to needing more research
         reasoning = f"Failed to parse reflection response: {str(e)}"
         needs_more_research = True
-    
+
     return {
         "reflection_result": extracted_info,
         "needs_more_research": needs_more_research,
-        "reflection_reasoning": reasoning
+        "reflection_reasoning": reasoning,
     }
 
 
 def should_continue(state: OverallState) -> Literal["generate_queries", "END"]:
     """Determine whether to continue research or end the workflow.
-    
+
     This function checks the reflection results to decide if more research is needed.
     If more research is needed, it routes back to generate_queries.
     If research is complete, it routes to END.
@@ -260,20 +277,8 @@ builder.add_edge("research_person", "reflection")
 
 # Add conditional edge from reflection
 builder.add_conditional_edges(
-    "reflection",
-    should_continue,
-    {
-        "generate_queries": "generate_queries",
-        "END": END
-    }
+    "reflection", should_continue, {"generate_queries": "generate_queries", "END": END}
 )
 
 # Compile
 graph = builder.compile()
-
-
-
-
-
-
-

@@ -41,12 +41,14 @@ class OverallState:
     user_notes: str = field(default=None)
     "Any notes from the user to start the research process."
 
-    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
-        "years_of_experience": "Total years of professional work experience",
-        "current_company": "Current employer/company name",
-        "current_role": "Current job title/position",
-        "prior_companies": "List of previous companies worked at with roles and duration"
-    })
+    extraction_schema: dict[str, Any] = field(
+        default_factory=lambda: {
+            "years_of_experience": "Total years of professional work experience",
+            "current_company": "Current employer/company name",
+            "current_role": "Current job title/position",
+            "prior_companies": "List of previous companies worked at with roles and duration",
+        }
+    )
     "Schema defining what information to extract about the person"
 
     search_queries: list[str] = field(default=None)
@@ -90,6 +92,3 @@ class OutputState:
 
     missing_information: Optional[list[str]] = field(default=None)
     "List of information that could not be found or needs verification"
-
-
-

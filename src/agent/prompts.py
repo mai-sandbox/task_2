@@ -101,4 +101,3 @@ Guidelines:
 3. Consider the completeness and reliability of the information found
 4. Recommend more research if key information is missing or if there are inconsistencies
 5. Focus on professional work experience, current employment, and career history"""
-
