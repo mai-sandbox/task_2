@@ -220,7 +220,7 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     }
 
 
-def route_after_reflection(state: OverallState) -> Literal["generate_queries", END]:
+def route_after_reflection(state: OverallState) -> Union[Literal["generate_queries"], str]:
     """Route based on reflection decision."""
     if state.reflection_decision == "continue":
         return "generate_queries"
@@ -256,6 +256,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
