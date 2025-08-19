@@ -130,6 +130,49 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionOutput(BaseModel):
+    """Combined output from reflection step."""
+    
+    person_profile: PersonProfile = Field(
+        description="Structured profile information extracted from research notes"
+    )
+    reflection_decision: ReflectionDecision = Field(
+        description="Decision about research completeness and next steps"
+    )
+
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and extract structured information.
+    
+    This function:
+    1. Takes completed research notes from the state
+    2. Uses structured output to extract PersonProfile information
+    3. Evaluates research satisfaction and completeness
+    4. Returns both the structured profile and reflection decision
+    """
+    
+    # Format all completed notes into a single string
+    research_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection output
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        research_notes=research_notes
+    )
+    
+    # Get structured reflection output
+    result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Return the extracted information and decision
+    return {
+        "person_profile": result.person_profile,
+        "reflection_decision": result.reflection_decision
+    }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,4 +189,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
