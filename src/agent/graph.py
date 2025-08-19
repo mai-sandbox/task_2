@@ -1,3 +1,16 @@
+"""Main graph module for the people research agent with reflection capabilities.
+
+This module implements the core LangGraph workflow for researching people and extracting
+structured information. It includes query generation, web research, and reflection-based
+iterative research with intelligent stopping conditions.
+
+The workflow consists of:
+1. Query generation based on person information and extraction schema
+2. Web research using Tavily API to gather information
+3. Reflection analysis to extract structured data and determine research completeness
+4. Conditional routing to either continue research or end the workflow
+"""
+
 import asyncio
 import json
 from typing import Any, Literal, cast
@@ -282,3 +295,4 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
