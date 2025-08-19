@@ -1,21 +1,21 @@
 import asyncio
-from typing import cast, Any, Literal, Optional, Union
 import json
+from typing import Any, Literal, Optional, Union, cast
 
-from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph import END, START, StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState, ExtractedInfo
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import ExtractedInfo, InputState, OutputState, OverallState
+from agent.utils import deduplicate_and_format_sources, format_all_notes
 
 # LLMs
 
@@ -126,7 +126,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -165,7 +164,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Reflect on the research notes and decide whether to continue or complete."""
-    
     # Format all collected notes
     all_notes = format_all_notes(state.completed_notes)
     
