@@ -1,22 +1,29 @@
-import asyncio
-from typing import cast, Any, Literal
-import json
+"""Graph module for the people research agent.
 
-from tavily import AsyncTavilyClient
+This module defines the LangGraph workflow for researching people, including
+query generation, web search, and reflection-based iteration to ensure
+comprehensive data collection about professional information.
+"""
+
+import asyncio
+import json
+from typing import Any, Literal, cast
+
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import OverallState
+from agent.utils import deduplicate_and_format_sources
 
 # LLMs
 
@@ -26,17 +33,54 @@ rate_limiter = InMemoryRateLimiter(
     max_bucket_size=10,  # Controls the maximum burst size.
 )
 claude_3_5_sonnet = ChatAnthropic(
-    model="claude-3-5-sonnet-latest", temperature=0, rate_limiter=rate_limiter
+    model_name="claude-3-5-sonnet-latest", 
+    temperature=0, 
+    rate_limiter=rate_limiter,
+    timeout=60,
+    stop=None
 )
 
 # Search
 
-tavily_async_client = AsyncTavilyClient()
+def get_tavily_client():
+    """Get Tavily client with lazy initialization."""
+    return AsyncTavilyClient()
 
 
 class Queries(BaseModel):
+    """Model for structured search query output."""
+    
     queries: list[str] = Field(
         description="List of search queries.",
+    )
+
+
+class ReflectionOutput(BaseModel):
+    """Structured output from the reflection analysis."""
+    
+    extracted_info: dict[str, Any] = Field(
+        description="Dictionary containing the structured information found in the research notes"
+    )
+    
+    completeness_assessment: dict[str, float] = Field(
+        description="Analysis of how complete each schema field is (0-100%)"
+    )
+    
+    missing_information: list[str] = Field(
+        description="List of specific information gaps that need to be addressed"
+    )
+    
+    research_decision: Literal["CONTINUE", "CONCLUDE"] = Field(
+        description="Decision on whether to continue research or conclude the process"
+    )
+    
+    reasoning: str = Field(
+        description="Detailed explanation of the research decision"
+    )
+    
+    suggested_queries: list[str] = Field(
+        default_factory=list,
+        description="If continuing, specific search queries to fill the gaps"
     )
 
 
@@ -94,16 +138,16 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
 
     # Web search
+    tavily_client = get_tavily_client()
     search_tasks = []
     for query in state.search_queries:
         search_tasks.append(
-            tavily_async_client.search(
+            tavily_client.search(
                 query,
                 days=360,
                 max_results=max_search_results,
@@ -130,19 +174,100 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and determine if additional research is needed.
+    
+    This function performs the following steps:
+    1. Takes the completed research notes from the state
+    2. Uses the REFLECTION_PROMPT to analyze them against the extraction schema
+    3. Returns a structured assessment with a decision on whether to continue or conclude
+    """
+    # Get the structured LLM for reflection output
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    
+    # Format completed notes
+    notes_str = "\n\n".join(state.completed_notes) if state.completed_notes else "No research notes available yet."
+    
+    # Create the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=notes_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get the reflection analysis
+    reflection_result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Cast to ReflectionOutput for type safety
+    if isinstance(reflection_result, ReflectionOutput):
+        # Return the reflection analysis as part of the state
+        return {
+            "reflection_output": reflection_result.model_dump(),
+            "research_decision": reflection_result.research_decision,
+            "extracted_info": reflection_result.extracted_info,
+            "missing_information": reflection_result.missing_information
+        }
+    else:
+        # Fallback for unexpected type
+        return {
+            "reflection_output": {},
+            "research_decision": "CONCLUDE",
+            "extracted_info": {},
+            "missing_information": []
+        }
+
 # Add nodes and edges
-builder = StateGraph(
-    OverallState,
-    input=InputState,
-    output=OutputState,
-    config_schema=Configuration,
-)
+builder = StateGraph(OverallState)
 builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional logic based on reflection decision
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "__end__"]:
+    """Determine whether to continue research or end based on reflection decision."""
+    if state.research_decision == "CONTINUE":
+        return "generate_queries"
+    else:
+        return "__end__"
+
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        "__end__": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
+
+
+
+
+
+
+
+
+
+
+
+
+

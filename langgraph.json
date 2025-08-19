@@ -1,0 +1,36 @@
+{
+  "dependencies": [
+    "langgraph>=0.2.52",
+    "langsmith>=0.1.147",
+    "langchain-community>=0.3.8",
+    "tavily-python>=0.5.0",
+    "langchain_anthropic>=0.3.0"
+  ],
+  "graphs": {
+    "people_research_agent": {
+      "path": "src.agent.graph:graph",
+      "description": "A people research agent that searches for information about a person and uses reflection to ensure comprehensive data collection. The agent iteratively searches for professional information including years of experience, current company, role, and prior companies, using a reflection mechanism to determine when sufficient information has been gathered.",
+      "config_schema": "src.agent.configuration:Configuration"
+    }
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": null,
+    "TAVILY_API_KEY": null,
+    "LANGSMITH_API_KEY": null,
+    "LANGSMITH_TRACING": "true",
+    "LANGSMITH_PROJECT": "people-research-agent",
+    "MAX_SEARCH_QUERIES": "3",
+    "MAX_SEARCH_RESULTS": "3"
+  },
+  "dockerfile_lines": [
+    "RUN pip install --no-cache-dir -e ."
+  ],
+  "python_version": "3.9",
+  "metadata": {
+    "name": "people-research-agent",
+    "version": "0.0.1",
+    "description": "Researcher agent that searches information about a person and returns it in a structured format with reflection-based iteration",
+    "author": "Vadym Barda, Isaac Hershenson"
+  }
+}
+
