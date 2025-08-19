@@ -256,7 +256,7 @@ def should_continue(state: OverallState) -> str:
     if state.reflection_decision == "continue":
         return "generate_queries"
     else:
-        return END
+        return str(END)
 
 builder.add_conditional_edges(
     "reflection",
@@ -269,6 +269,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
