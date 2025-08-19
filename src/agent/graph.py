@@ -33,7 +33,11 @@ rate_limiter = InMemoryRateLimiter(
     max_bucket_size=10,  # Controls the maximum burst size.
 )
 claude_3_5_sonnet = ChatAnthropic(
-    model_name="claude-3-5-sonnet-latest", temperature=0, rate_limiter=rate_limiter
+    model_name="claude-3-5-sonnet-latest", 
+    temperature=0, 
+    rate_limiter=rate_limiter,
+    timeout=60,
+    stop=None
 )
 
 # Search
@@ -253,6 +257,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
