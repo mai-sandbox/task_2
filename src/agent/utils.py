@@ -4,7 +4,8 @@
 def deduplicate_and_format_sources(
     search_response, max_tokens_per_source, include_raw_content=True
 ):
-    """Takes either a single search response or list of responses from Tavily API and formats them.
+    """Format search responses from Tavily API into deduplicated sources.
+    
     Limits the raw_content to approximately max_tokens_per_source.
     include_raw_content specifies whether to include the raw_content from Tavily in the formatted string.
 
@@ -71,4 +72,5 @@ People {idx}:
 Notes from research:
 {people_notes}"""
     return formatted_str
+
 
