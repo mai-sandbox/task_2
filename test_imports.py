@@ -22,10 +22,15 @@ def test_imports():
         print("✓ Utils imports successful")
         
         # Test graph imports and compilation
-        from agent.graph import graph, generate_queries, research_person, reflection, should_continue_research
-        print("✓ Graph imports successful")
+        from agent.graph import generate_queries, research_person, reflection, should_continue_research
+        print("✓ Graph function imports successful")
         
-        # Test graph compilation
+        # Test graph compilation (without instantiating API clients)
+        import os
+        os.environ.setdefault('TAVILY_API_KEY', 'test-key')
+        os.environ.setdefault('ANTHROPIC_API_KEY', 'test-key')
+        
+        from agent.graph import graph
         print("✓ Graph compiled successfully")
         
         return True
@@ -71,3 +76,4 @@ if __name__ == "__main__":
         print("\n🎉 All tests passed! The people research agent is ready for deployment.")
     else:
         print("\n❌ Some tests failed. Please check the errors above.")
+
