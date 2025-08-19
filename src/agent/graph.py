@@ -230,6 +230,24 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     }
 
 
+def route_reflection(state: OverallState) -> Literal["research_person", "__end__"]:
+    """Route based on the reflection decision.
+    
+    This function determines the next step based on the reflection's assessment:
+    - If decision is 'continue': Route back to research_person for more research
+    - If decision is 'complete': Route to END to finish the process
+    """
+    # Check the decision from the reflection step
+    decision = state.get("decision", None)
+    
+    if decision == "continue":
+        # Need more research - go back to research_person
+        return "research_person"
+    else:
+        # Satisfied with the information - end the process
+        return "__end__"
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -246,6 +264,7 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
 
