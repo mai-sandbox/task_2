@@ -1,5 +1,5 @@
 import asyncio
-from typing import cast, Any, Literal
+from typing import cast, Any, Literal, Optional
 import json
 
 from tavily import AsyncTavilyClient
@@ -250,6 +250,7 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
 
