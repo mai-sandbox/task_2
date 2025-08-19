@@ -1,3 +1,5 @@
+"""Graph module for the people research agent."""
+
 import asyncio
 import json
 from typing import Any, Literal, Optional, Union, cast
@@ -254,6 +256,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
