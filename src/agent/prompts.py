@@ -1,3 +1,5 @@
+"""Prompts module containing all prompt templates for the people research agent."""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -92,4 +94,5 @@ Guidelines for decision-making:
 - When in doubt, prefer to FINISH if we have enough for a basic professional profile
 
 Remember: Focus on extracting factual information from the notes. If information is not available, indicate it as null or empty rather than making assumptions."""
+
 
