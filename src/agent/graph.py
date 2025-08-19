@@ -40,6 +40,56 @@ class Queries(BaseModel):
     )
 
 
+class StructuredPersonInfo(BaseModel):
+    """Structured information about a person's professional background."""
+    years_of_experience: str = Field(
+        default="Not found",
+        description="Total years of professional experience"
+    )
+    current_company: str = Field(
+        default="Not found",
+        description="Name of the current employer/company"
+    )
+    current_role: str = Field(
+        default="Not found",
+        description="Current job title or position"
+    )
+    prior_companies: list[str] = Field(
+        default_factory=list,
+        description="List of previous companies with roles and duration"
+    )
+    education: str = Field(
+        default="Not found",
+        description="Educational background"
+    )
+    skills: list[str] = Field(
+        default_factory=list,
+        description="Key technical and professional skills"
+    )
+    notable_achievements: list[str] = Field(
+        default_factory=list,
+        description="Significant accomplishments or projects"
+    )
+
+
+class ReflectionDecision(BaseModel):
+    """Decision from the reflection step."""
+    is_satisfactory: bool = Field(
+        description="Whether the research is satisfactory and complete"
+    )
+    missing_information: list[str] = Field(
+        default_factory=list,
+        description="List of missing critical information"
+    )
+    reasoning: str = Field(
+        description="Reasoning for the decision to continue or redo research"
+    )
+    suggested_queries: list[str] = Field(
+        default_factory=list,
+        description="Additional search queries if research needs to continue"
+    )
+
+
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Generate search queries based on the user input and extraction schema."""
@@ -146,4 +196,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
