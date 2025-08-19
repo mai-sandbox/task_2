@@ -247,9 +247,22 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    route_after_reflection,
+    {
+        "generate_queries": "generate_queries",
+        END: END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
+# Export as 'app' for LangGraph platform deployment
+app = graph
+
 
 
 
