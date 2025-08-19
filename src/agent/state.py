@@ -61,10 +61,10 @@ class OverallState:
     })
     "Schema defining the structured format for extracting person information"
     
-    structured_info: Optional[PersonInfo] = field(default=None)
+    structured_info: Optional["PersonInfo"] = field(default=None)
     "Structured information extracted from research notes"
     
-    reflection_result: Optional[ReflectionResult] = field(default=None)
+    reflection_result: Optional["ReflectionResult"] = field(default=None)
     "Result of the reflection process evaluating research completeness"
     
     research_iterations: int = field(default=0)
@@ -136,6 +136,7 @@ class OutputState:
     
     research_iterations: int = field(default=1)
     """Number of research iterations performed."""
+
 
 
 
