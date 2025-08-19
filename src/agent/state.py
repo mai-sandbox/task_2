@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, List, Optional
@@ -151,3 +153,4 @@ class OutputState:
 
     research_iterations: int = field(default=0)
     "Number of research iterations performed"
+
