@@ -218,6 +218,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     )
     
     # Return the extracted information and decision as state updates
+    # Note: The decision field is used by the routing function to determine next steps
     return {
         "years_experience": reflection_result.years_experience,
         "current_company": reflection_result.current_company,
@@ -225,6 +226,7 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
         "prior_companies": reflection_result.prior_companies,
         "reflection_notes": reflection_result.reflection_notes,
         "satisfaction_score": reflection_result.satisfaction_score,
+        "decision": reflection_result.decision,  # This will be used for conditional routing
     }
 
 
@@ -244,6 +246,7 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
 
 
