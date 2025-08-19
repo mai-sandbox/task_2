@@ -206,13 +206,23 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     # Get the reflection analysis
     reflection_result = await structured_llm.ainvoke(reflection_prompt)
     
-    # Return the reflection analysis as part of the state
-    return {
-        "reflection_output": reflection_result.model_dump(),
-        "research_decision": reflection_result.research_decision,
-        "extracted_info": reflection_result.extracted_info,
-        "missing_information": reflection_result.missing_information
-    }
+    # Cast to ReflectionOutput for type safety
+    if isinstance(reflection_result, ReflectionOutput):
+        # Return the reflection analysis as part of the state
+        return {
+            "reflection_output": reflection_result.model_dump(),
+            "research_decision": reflection_result.research_decision,
+            "extracted_info": reflection_result.extracted_info,
+            "missing_information": reflection_result.missing_information
+        }
+    else:
+        # Fallback for unexpected type
+        return {
+            "reflection_output": {},
+            "research_decision": "CONCLUDE",
+            "extracted_info": {},
+            "missing_information": []
+        }
 
 # Add nodes and edges
 builder = StateGraph(
@@ -248,6 +258,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
