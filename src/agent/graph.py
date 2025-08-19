@@ -298,6 +298,10 @@ builder.add_conditional_edges(
 # Compile
 graph = builder.compile()
 
+# Export for LangGraph Platform
+app = graph
+
+
 
 
 
