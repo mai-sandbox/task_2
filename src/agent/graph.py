@@ -26,8 +26,15 @@ claude_3_5_sonnet = ChatAnthropic(
 )
 
 # Search
+# Initialize Tavily client lazily to avoid API key errors during import
+tavily_async_client = None
 
-tavily_async_client = AsyncTavilyClient()
+def get_tavily_client():
+    """Get or create the Tavily client."""
+    global tavily_async_client
+    if tavily_async_client is None:
+        tavily_async_client = AsyncTavilyClient()
+    return tavily_async_client
 
 
 class Queries(BaseModel):
@@ -258,6 +265,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
