@@ -19,6 +19,45 @@ class Person(BaseModel):
     """The current title of the person."""
 
 
+class PersonProfile(BaseModel):
+    """Structured profile information extracted from research notes."""
+    
+    years_experience: Optional[int] = Field(
+        default=None,
+        description="Total years of professional experience"
+    )
+    current_company: Optional[str] = Field(
+        default=None,
+        description="Current company the person works at"
+    )
+    role: Optional[str] = Field(
+        default=None,
+        description="Current job title or role"
+    )
+    prior_companies: list[str] = Field(
+        default_factory=list,
+        description="List of previous companies the person has worked at"
+    )
+
+
+class ReflectionDecision(BaseModel):
+    """Decision model for reflection step evaluation."""
+    
+    is_satisfactory: bool = Field(
+        description="Whether the current research is satisfactory"
+    )
+    missing_info: list[str] = Field(
+        default_factory=list,
+        description="List of missing information that should be researched"
+    )
+    should_redo: bool = Field(
+        description="Whether the research process should be redone"
+    )
+    reasoning: str = Field(
+        description="Detailed reasoning for the decision"
+    )
+
+
 @dataclass(kw_only=True)
 class InputState:
     """Input state defines the interface between the graph and the user (external API)."""
@@ -46,4 +85,5 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
 
