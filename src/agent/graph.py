@@ -252,5 +252,9 @@ builder.add_conditional_edges(
 # Compile
 graph = builder.compile()
 
+# Export as 'app' for LangGraph deployment compatibility
+app = graph
+
+
 
 
