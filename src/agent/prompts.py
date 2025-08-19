@@ -48,3 +48,57 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are an expert research evaluator tasked with assessing the completeness and quality of research about a person's professional background.
+
+Person being researched:
+{person}
+
+Structured information extracted from research:
+{structured_info}
+
+Raw research notes:
+{raw_notes}
+
+User's specific requirements:
+{user_notes}
+
+Your task is to evaluate the research and determine:
+
+1. **Completeness Assessment**: Evaluate whether the following critical information has been found:
+   - Years of professional experience (specific number or reasonable estimate)
+   - Current company name (where they currently work)
+   - Current role/position (their job title)
+   - Prior companies (at least 2-3 previous employers with roles if they have work history)
+   - Educational background (degrees, institutions)
+   - Key skills or expertise areas
+
+2. **Quality Evaluation**: Consider:
+   - Is the information specific and detailed enough?
+   - Are there contradictions or uncertainties in the data?
+   - Does the information appear current and reliable?
+   - Are the most important professional details captured?
+
+3. **Missing Information**: Identify what critical information is still missing:
+   - Be specific about what wasn't found
+   - Prioritize information that's most important for understanding their professional background
+   - Consider if the missing information is likely findable through web search
+
+4. **Decision Reasoning**: Provide clear reasoning for your decision:
+   - If SATISFACTORY: Explain why the current information is sufficient
+   - If NEEDS MORE RESEARCH: Explain what specific gaps need to be filled
+   - Consider the user's specific requirements when making this decision
+
+5. **Suggested Queries**: If research needs to continue, provide 2-3 specific search queries that would help find the missing information. Focus on:
+   - Queries that target the specific missing information
+   - Alternative search strategies (e.g., searching company + role if name searches aren't working)
+   - LinkedIn-specific searches if professional details are missing
+
+Make your evaluation based on professional research standards. The research should provide enough information to understand the person's:
+- Career trajectory and experience level
+- Current professional position
+- Work history and career progression
+- Educational and skill background
+
+Be pragmatic - if the core information (experience, current company, role, prior companies) is present and reliable, the research can be considered satisfactory even if some minor details are missing."""
+

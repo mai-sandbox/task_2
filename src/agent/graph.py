@@ -1,12 +1,12 @@
 import asyncio
-from typing import cast, Any, Literal
+from typing import cast, Any, Literal, Dict
 import json
 
 from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langchain_core.rate_limiters import InMemoryRateLimiter
+from langgraph.graph import START, END, StateGraph
 from pydantic import BaseModel, Field
 
 from agent.configuration import Configuration
@@ -31,12 +31,70 @@ claude_3_5_sonnet = ChatAnthropic(
 
 # Search
 
-tavily_async_client = AsyncTavilyClient()
+# Initialize Tavily client (will use TAVILY_API_KEY from environment)
+tavily_async_client = None  # Will be initialized when needed
+
+def get_tavily_client():
+    """Get or create Tavily client."""
+    global tavily_async_client
+    if tavily_async_client is None:
+        tavily_async_client = AsyncTavilyClient()
+    return tavily_async_client
 
 
 class Queries(BaseModel):
     queries: list[str] = Field(
         description="List of search queries.",
+    )
+
+
+class StructuredPersonInfo(BaseModel):
+    """Structured information about a person's professional background."""
+    years_of_experience: str = Field(
+        default="Not found",
+        description="Total years of professional experience"
+    )
+    current_company: str = Field(
+        default="Not found",
+        description="Name of the current employer/company"
+    )
+    current_role: str = Field(
+        default="Not found",
+        description="Current job title or position"
+    )
+    prior_companies: list[str] = Field(
+        default_factory=list,
+        description="List of previous companies with roles and duration"
+    )
+    education: str = Field(
+        default="Not found",
+        description="Educational background"
+    )
+    skills: list[str] = Field(
+        default_factory=list,
+        description="Key technical and professional skills"
+    )
+    notable_achievements: list[str] = Field(
+        default_factory=list,
+        description="Significant accomplishments or projects"
+    )
+
+
+class ReflectionDecision(BaseModel):
+    """Decision from the reflection step."""
+    is_satisfactory: bool = Field(
+        description="Whether the research is satisfactory and complete"
+    )
+    missing_information: list[str] = Field(
+        default_factory=list,
+        description="List of missing critical information"
+    )
+    reasoning: str = Field(
+        description="Reasoning for the decision to continue or redo research"
+    )
+    suggested_queries: list[str] = Field(
+        default_factory=list,
+        description="Additional search queries if research needs to continue"
     )
 
 
@@ -101,9 +159,10 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
     # Web search
     search_tasks = []
+    client = get_tavily_client()
     for query in state.search_queries:
         search_tasks.append(
-            tavily_async_client.search(
+            client.search(
                 query,
                 days=360,
                 max_results=max_search_results,
@@ -130,6 +189,87 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research results and decide whether to continue or conclude.
+    
+    This function:
+    1. Structures the collected notes into the required format
+    2. Evaluates if the information is satisfactory
+    3. Identifies missing information
+    4. Decides whether to redo the research or conclude
+    """
+    
+    # Format all collected notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # First, extract structured information from the notes
+    structured_llm = claude_3_5_sonnet.with_structured_output(StructuredPersonInfo)
+    
+    extraction_prompt = f"""Based on the following research notes about {state.person.name or state.person.email}, 
+    extract and structure the professional information. If information is not found, indicate "Not found".
+    
+    Research Notes:
+    {formatted_notes}
+    
+    Please extract:
+    - Years of experience (calculate if possible from career history)
+    - Current company and role
+    - Prior companies with roles and duration
+    - Education background
+    - Key skills
+    - Notable achievements
+    """
+    
+    structured_info = await structured_llm.ainvoke(extraction_prompt)
+    
+    # Now evaluate the completeness and quality of the research
+    reflection_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=state.person.dict(),
+        structured_info=structured_info.dict(),
+        raw_notes=formatted_notes,
+        user_notes=state.user_notes or "No specific requirements provided"
+    )
+    
+    reflection_result = await reflection_llm.ainvoke(reflection_prompt)
+    
+    # Prepare the state update
+    state_update = {
+        "structured_output": structured_info.dict(),
+        "reflection_result": reflection_result.dict()
+    }
+    
+    # If research is not satisfactory and we have suggested queries, add them
+    if not reflection_result.is_satisfactory and reflection_result.suggested_queries:
+        state_update["search_queries"] = reflection_result.suggested_queries
+    
+    return state_update
+
+
+def should_continue_research(state: OverallState) -> Literal["generate_queries", END]:
+    """Determine whether to continue research or end based on reflection results."""
+    
+    # If we don't have reflection results yet, something went wrong - end
+    if not state.reflection_result:
+        return END
+    
+    # Check if the research is satisfactory
+    reflection = state.reflection_result
+    if reflection.get("is_satisfactory", False):
+        # Research is complete and satisfactory
+        return END
+    
+    # Check if we have suggested queries to continue with
+    if reflection.get("suggested_queries") and len(reflection.get("suggested_queries", [])) > 0:
+        # We have more queries to explore
+        return "generate_queries"
+    
+    # No more queries or satisfied with current results
+    return END
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -143,6 +283,23 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        END: END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
+
+
+
+
+
+
+
