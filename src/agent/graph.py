@@ -159,6 +159,51 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and determine if additional research is needed.
+    
+    This function performs the following steps:
+    1. Takes the completed research notes from the state
+    2. Uses the REFLECTION_PROMPT to analyze them against the extraction schema
+    3. Returns a structured assessment with a decision on whether to continue or conclude
+    """
+    
+    # Get the structured LLM for reflection output
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format person information for the prompt
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    
+    # Format completed notes
+    notes_str = "\n\n".join(state.completed_notes) if state.completed_notes else "No research notes available yet."
+    
+    # Create the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        completed_notes=notes_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get the reflection analysis
+    reflection_result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Return the reflection analysis as part of the state
+    return {
+        "reflection_output": reflection_result.model_dump(),
+        "research_decision": reflection_result.research_decision,
+        "extracted_info": reflection_result.extracted_info,
+        "missing_information": reflection_result.missing_information
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -175,4 +220,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
