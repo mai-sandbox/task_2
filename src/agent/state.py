@@ -55,6 +55,22 @@ class OverallState:
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
 
+    # Reflection results
+    structured_info: dict[str, Any] = field(default_factory=dict)
+    "Structured information extracted from research notes matching the extraction schema"
+
+    completeness_score: float = field(default=0.0)
+    "Score from 0-1 indicating how complete the extracted information is"
+
+    missing_information: list[str] = field(default_factory=list)
+    "List of information categories that are missing or incomplete"
+
+    should_continue: bool = field(default=True)
+    "Boolean indicating whether additional research should be conducted"
+
+    reasoning: str = field(default="")
+    "Explanation for the completeness assessment and decision to continue or finish"
+
 
 @dataclass(kw_only=True)
 class OutputState:
@@ -74,5 +90,6 @@ class OutputState:
 
     reasoning: str
     "Explanation for the completeness assessment and decision to continue or finish"
+
 
 
