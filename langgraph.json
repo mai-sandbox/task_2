@@ -1,0 +1,35 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "people_research_agent": {
+      "path": "src.agent.graph:graph",
+      "description": "People research agent that searches for information about a person and returns structured data including years of experience, current company, role, and prior companies with reflection-based iterative research."
+    }
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": {
+      "description": "API key for Anthropic Claude models used for query generation, research analysis, and reflection",
+      "required": true
+    },
+    "TAVILY_API_KEY": {
+      "description": "API key for Tavily search API used for web research",
+      "required": true
+    },
+    "LANGSMITH_API_KEY": {
+      "description": "API key for LangSmith tracing and monitoring (optional)",
+      "required": false
+    },
+    "LANGSMITH_TRACING": {
+      "description": "Enable LangSmith tracing for debugging and monitoring",
+      "required": false,
+      "default": "false"
+    }
+  },
+  "python_version": "3.9",
+  "pip_config_file": "pyproject.toml",
+  "dockerfile_lines": [
+    "RUN apt-get update && apt-get install -y curl"
+  ]
+}
