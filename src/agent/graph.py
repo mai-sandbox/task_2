@@ -234,7 +234,8 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
                 reflection_content.split("Prior Companies:")[1].split("\n")[0].strip()
             )
             if companies_line.lower() not in ["unknown", "unclear"]:
-                extracted_info["prior_companies"] = companies_line
+                # Convert string to list format expected by OutputState
+                extracted_info["prior_companies"] = [{"company": companies_line, "role": "Unknown", "duration": "Unknown"}]
 
         # Determine if more research is needed
         if "Needs More Research:" in reflection_content:
@@ -301,6 +302,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
