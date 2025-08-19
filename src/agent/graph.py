@@ -250,7 +250,14 @@ def should_continue(state: OverallState) -> Literal["generate_queries", "end"]:
     - If decision is "complete", route to END to finish the research
     """
     # Check for the decision stored by the reflection function
-    decision = state.get("__decision__", "complete")
+    # Since we can't add arbitrary fields to the dataclass, we'll check the completeness assessment
+    decision = "complete"  # Default to complete
+    
+    # Check if we have a completeness assessment
+    if hasattr(state, 'completeness_assessment') and state.completeness_assessment:
+        # If research is not complete and we have suggested queries, continue
+        if not state.completeness_assessment.is_complete and state.completeness_assessment.suggested_queries:
+            decision = "continue"
     
     # Also check iteration count as a safety measure
     current_iteration = len(state.completed_notes) if state.completed_notes else 0
@@ -290,6 +297,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
