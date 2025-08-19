@@ -1,3 +1,10 @@
+"""Utility functions for the people research agent workflow.
+
+This module provides helper functions for processing and formatting search results
+from the Tavily API, including deduplication, content truncation, and note formatting
+for the research workflow.
+"""
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -73,3 +80,4 @@ People {idx}:
 Notes from research:
 {people_notes}"""
     return formatted_str
+
