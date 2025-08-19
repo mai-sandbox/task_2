@@ -40,6 +40,35 @@ class Queries(BaseModel):
     )
 
 
+class ReflectionOutput(BaseModel):
+    """Structured output from the reflection analysis."""
+    
+    extracted_info: dict[str, Any] = Field(
+        description="Dictionary containing the structured information found in the research notes"
+    )
+    
+    completeness_assessment: dict[str, float] = Field(
+        description="Analysis of how complete each schema field is (0-100%)"
+    )
+    
+    missing_information: list[str] = Field(
+        description="List of specific information gaps that need to be addressed"
+    )
+    
+    research_decision: Literal["CONTINUE", "CONCLUDE"] = Field(
+        description="Decision on whether to continue research or conclude the process"
+    )
+    
+    reasoning: str = Field(
+        description="Detailed explanation of the research decision"
+    )
+    
+    suggested_queries: list[str] = Field(
+        default_factory=list,
+        description="If continuing, specific search queries to fill the gaps"
+    )
+
+
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Generate search queries based on the user input and extraction schema."""
@@ -146,3 +175,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
