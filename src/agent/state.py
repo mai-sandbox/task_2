@@ -88,3 +88,24 @@ class OverallState:
     "Schema defining the key information to extract about the person"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final structured information returned by the graph."""
+    
+    person: Person
+    "The person that was researched."
+    
+    extracted_info: dict[str, Any] = field(default_factory=dict)
+    "Structured information extracted about the person based on the schema."
+    
+    research_summary: str = field(default="")
+    "Summary of the research process and findings."
+    
+    confidence_score: float = field(default=0.0)
+    "Confidence score (0-1) indicating how complete the extracted information is."
+    
+    missing_information: list[str] = field(default_factory=list)
+    "List of key information areas that could not be found or verified."
+
+
+
