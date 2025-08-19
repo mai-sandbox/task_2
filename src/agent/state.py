@@ -86,6 +86,19 @@ class OverallState:
         }
     })
     "Schema defining the key information to extract about the person"
+    
+    # Reflection-related fields
+    reflection_output: dict[str, Any] = field(default_factory=dict)
+    "Output from the reflection analysis including structured assessment"
+    
+    research_decision: str = field(default="")
+    "Decision from reflection: either 'CONTINUE' or 'CONCLUDE'"
+    
+    extracted_info: dict[str, Any] = field(default_factory=dict)
+    "Structured information extracted from research notes"
+    
+    missing_information: list[str] = field(default_factory=list)
+    "List of information gaps identified during reflection"
 
 
 @dataclass(kw_only=True)
@@ -106,6 +119,7 @@ class OutputState:
     
     missing_information: list[str] = field(default_factory=list)
     "List of key information areas that could not be found or verified."
+
 
 
 
