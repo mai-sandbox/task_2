@@ -168,6 +168,62 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and determine if additional research is needed.
+    
+    This function performs the following steps:
+    1. Uses Claude 3.5 Sonnet with structured output to analyze completed notes
+    2. Extracts structured information against the extraction schema
+    3. Determines satisfaction level and identifies gaps
+    4. Returns decision on whether to continue research with detailed reasoning
+    """
+    
+    # Format the completed notes for analysis
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f", Name: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f", LinkedIn: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f", Role: {state.person.role}"
+    if state.person.company:
+        person_str += f", Company: {state.person.company}"
+    
+    # Create structured LLM for reflection analysis
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
+        completed_notes=formatted_notes
+    )
+    
+    # Get structured reflection analysis
+    reflection_result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Convert the structured output to the format expected by the state
+    return {
+        "research_satisfaction": reflection_result.research_satisfaction,
+        "missing_information": reflection_result.missing_information,
+        "reasoning": reflection_result.reasoning,
+        "continue_research": reflection_result.continue_research,
+        # Store extracted structured information for potential use in OutputState
+        "extracted_info": {
+            "years_of_experience": reflection_result.years_of_experience,
+            "current_company": reflection_result.current_company,
+            "current_role": reflection_result.current_role,
+            "prior_companies": reflection_result.prior_companies,
+            "education": reflection_result.education,
+            "skills": reflection_result.skills,
+            "achievements": reflection_result.achievements
+        }
+    }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -184,4 +240,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
