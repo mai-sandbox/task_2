@@ -1,3 +1,10 @@
+"""Graph module for the people research agent.
+
+This module defines the LangGraph workflow for researching people, including
+query generation, web search, and reflection-based iteration to ensure
+comprehensive data collection about professional information.
+"""
+
 import asyncio
 import json
 from typing import Any, Literal, cast
@@ -239,6 +246,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
