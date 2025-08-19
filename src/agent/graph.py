@@ -4,13 +4,13 @@ import json
 
 from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.graph import START, END, StateGraph
 from pydantic import BaseModel, Field
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
+from agent.state import InputState, OutputState, OverallState, PersonProfile, ReflectionDecision
 from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
     REFLECTION_PROMPT,
@@ -51,15 +51,15 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     structured_llm = claude_3_5_sonnet.with_structured_output(Queries)
 
     # Format system instructions
-    person_str = f"Email: {state.person['email']}"
-    if "name" in state.person:
-        person_str += f" Name: {state.person['name']}"
-    if "linkedin" in state.person:
-        person_str += f" LinkedIn URL: {state.person['linkedin']}"
-    if "role" in state.person:
-        person_str += f" Role: {state.person['role']}"
-    if "company" in state.person:
-        person_str += f" Company: {state.person['company']}"
+    person_str = f"Email: {state.person.email}"
+    if hasattr(state.person, 'name') and state.person.name:
+        person_str += f" Name: {state.person.name}"
+    if hasattr(state.person, 'linkedin') and state.person.linkedin:
+        person_str += f" LinkedIn URL: {state.person.linkedin}"
+    if hasattr(state.person, 'role') and state.person.role:
+        person_str += f" Role: {state.person.role}"
+    if hasattr(state.person, 'company') and state.person.company:
+        person_str += f" Company: {state.person.company}"
 
     query_instructions = QUERY_WRITER_PROMPT.format(
         person=person_str,
@@ -130,6 +130,49 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionOutput(BaseModel):
+    """Combined output from reflection step."""
+    
+    person_profile: PersonProfile = Field(
+        description="Structured profile information extracted from research notes"
+    )
+    reflection_decision: ReflectionDecision = Field(
+        description="Decision about research completeness and next steps"
+    )
+
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Analyze completed research notes and extract structured information.
+    
+    This function:
+    1. Takes completed research notes from the state
+    2. Uses structured output to extract PersonProfile information
+    3. Evaluates research satisfaction and completeness
+    4. Returns both the structured profile and reflection decision
+    """
+    
+    # Format all completed notes into a single string
+    research_notes = format_all_notes(state.completed_notes)
+    
+    # Create structured LLM for reflection output
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        research_notes=research_notes
+    )
+    
+    # Get structured reflection output
+    result = await structured_llm.ainvoke(reflection_prompt)
+    
+    # Return the extracted information and decision
+    return {
+        "person_profile": result.person_profile,
+        "reflection_decision": result.reflection_decision
+    }
+
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -141,8 +184,37 @@ builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
 builder.add_node("reflection", reflection)
 
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
+    """Determine whether to continue research or end based on reflection decision."""
+    if state.reflection_decision is None:
+        # If no reflection decision yet, something went wrong - end the process
+        return "END"
+    
+    if state.reflection_decision.should_redo:
+        # If reflection indicates we should redo research, go back to generate_queries
+        return "generate_queries"
+    else:
+        # If reflection indicates research is satisfactory, end the process
+        return "END"
+
+
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_conditional_edges(
+    "reflection",
+    should_continue_research,
+    {
+        "generate_queries": "generate_queries",
+        "END": END
+    }
+)
 
 # Compile
 graph = builder.compile()
+
+
+
+
+
+

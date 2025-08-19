@@ -48,3 +48,38 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with extracting structured information from research notes and evaluating their completeness.
+
+You have completed research on a person and gathered the following notes:
+
+<research_notes>
+{research_notes}
+</research_notes>
+
+Your task is to:
+
+1. **Extract structured information** from the research notes focusing on:
+   - Years of experience: Total years of professional work experience
+   - Current company: The company the person currently works at
+   - Role: Current job title or position
+   - Prior companies: List of previous companies the person has worked at
+
+2. **Evaluate research completeness** by determining:
+   - Is the current research satisfactory for understanding the person's professional background?
+   - What key information is missing or unclear?
+   - Should additional research be conducted to fill gaps?
+
+**Guidelines for evaluation:**
+- Research is satisfactory if you have clear information about current role, company, and work history
+- Research is unsatisfactory if critical information is missing, unclear, or contradictory
+- Consider the quality and reliability of the information found
+- Identify specific gaps that additional searches could address
+
+**Output Requirements:**
+You must provide both:
+1. A structured PersonProfile with the extracted information
+2. A ReflectionDecision with your evaluation and reasoning
+
+Be thorough in your analysis and provide clear reasoning for your decisions."""
+
