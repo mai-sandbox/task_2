@@ -1,3 +1,5 @@
+"""State definitions for the people research agent."""
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, List, Optional
@@ -134,6 +136,7 @@ class OutputState:
     
     research_iterations: int = field(default=1)
     """Number of research iterations performed."""
+
 
 
 
