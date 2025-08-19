@@ -114,17 +114,20 @@ def test_reflection_loop():
             missing_information=["education", "certifications"],
             quality_assessment="partial",
             additional_search_suggestions=["test query 1", "test query 2"],
-            decision="continue"
+            decision="continue",
+            reasoning="Need more information about education and certifications"
         )
         
         print("   ✓ ReflectionResult model works correctly")
         print(f"   ℹ Model fields: years_experience, current_company, role, prior_companies,")
-        print(f"                    missing_information, quality_assessment, additional_search_suggestions, decision")
+        print(f"                    missing_information, quality_assessment, additional_search_suggestions,")
+        print(f"                    decision, reasoning")
         
         # Test with minimal required fields
         minimal_result = ReflectionResult(
             quality_assessment="complete",
-            decision="complete"
+            decision="complete",
+            reasoning="All required information has been found"
         )
         print("   ✓ ReflectionResult works with minimal required fields")
         
@@ -197,4 +200,5 @@ def test_reflection_loop():
 if __name__ == "__main__":
     success = test_reflection_loop()
     sys.exit(0 if success else 1)
+
 
