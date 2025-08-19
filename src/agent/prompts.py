@@ -48,3 +48,41 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with reflecting on research notes about a person and converting them to structured format.
+
+Here are the research notes collected:
+<notes>
+{notes}
+</notes>
+
+Please analyze these notes and extract structured information focusing on:
+- Years of experience (total professional experience)
+- Current company
+- Current role/title 
+- Prior companies worked at (chronological order if possible)
+- Any other relevant professional information
+
+After structuring the information, determine:
+1. Is the current information satisfactory for a comprehensive profile?
+2. What key information is missing that would be valuable?
+3. Should we conduct additional research or is this sufficient?
+
+Provide your analysis in the following JSON format:
+{{
+  "structured_info": {{
+    "years_of_experience": "number or range if available",
+    "current_company": "company name or null",
+    "current_role": "job title or null", 
+    "prior_companies": ["list of previous companies"],
+    "other_info": {{}}
+  }},
+  "analysis": {{
+    "is_satisfactory": true/false,
+    "missing_information": ["list of missing key information"],
+    "continue_research": true/false,
+    "reasoning": "detailed reasoning for the decision"
+  }}
+}}
+
+Be thorough in your analysis and provide specific reasoning for whether to continue research."""
