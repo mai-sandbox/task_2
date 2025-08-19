@@ -44,10 +44,10 @@ class OverallState:
     person: Person
     "Person to research provided by the user."
 
-    user_notes: str = field(default=None)
+    user_notes: str = field(default="")
     "Any notes from the user to start the research process."
 
-    search_queries: list[str] = field(default=None)
+    search_queries: list[str] = field(default_factory=list)
     "List of generated search queries to find relevant information"
 
     # Add default values for required fields
@@ -126,6 +126,7 @@ class OutputState:
     
     missing_information: list[str] = field(default_factory=list)
     "List of key information areas that could not be found or verified."
+
 
 
 
