@@ -1,5 +1,5 @@
 import asyncio
-from typing import cast, Any, Literal, Optional
+from typing import cast, Any, Literal, Optional, Union
 import json
 
 from tavily import AsyncTavilyClient
@@ -256,6 +256,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
