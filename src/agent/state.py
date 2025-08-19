@@ -1,3 +1,5 @@
+"""State module defining the state schemas for the people research agent."""
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, List, Optional
@@ -84,5 +86,6 @@ class OverallState:
         "notable_achievements": "Notable achievements or accomplishments"
     })
     "Schema defining what information to extract during research"
+
 
 
