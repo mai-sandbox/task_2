@@ -141,11 +141,14 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
 
+    # Get Tavily client
+    tavily_client = get_tavily_client()
+
     # Web search
     search_tasks = []
     for query in state.search_queries:
         search_tasks.append(
-            tavily_async_client.search(
+            tavily_client.search(
                 query,
                 days=360,
                 max_results=max_search_results,
@@ -265,6 +268,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
