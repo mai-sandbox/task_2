@@ -75,4 +75,31 @@ class OverallState:
     "Decision from reflection: 'continue' or 'complete'"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state containing the final structured information about the person."""
+    
+    person: Person
+    "Original person information provided as input"
+    
+    extracted_info: ExtractedInfo
+    "Structured professional information extracted from research"
+    
+    years_experience: Optional[int] = field(default=None)
+    "Total years of professional experience"
+    
+    current_company: Optional[str] = field(default=None)
+    "Current company where the person works"
+    
+    role: Optional[str] = field(default=None)
+    "Current role or job title"
+    
+    prior_companies: List[str] = field(default_factory=list)
+    "List of previous companies the person has worked at"
+    
+    research_notes: str = field(default="")
+    "Consolidated research notes from all searches"
+
+
+
 
