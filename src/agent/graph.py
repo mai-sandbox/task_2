@@ -245,7 +245,7 @@ builder = StateGraph(
     OverallState,
     input_schema=InputState,
     output_schema=OutputState,
-    config_schema=Configuration,
+    context_schema=Configuration,
 )
 builder.add_node("generate_queries", generate_queries)
 builder.add_node("research_person", research_person)
@@ -268,6 +268,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
