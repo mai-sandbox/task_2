@@ -227,8 +227,10 @@ def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     }
     
     # Add any additional extracted information to the extracted_info field
-    if reflection_result.extracted_info and isinstance(output_update.get("extracted_info"), dict):
-        output_update["extracted_info"].update(reflection_result.extracted_info)
+    if reflection_result.extracted_info:
+        extracted = output_update.get("extracted_info")
+        if isinstance(extracted, dict):
+            extracted.update(reflection_result.extracted_info)
     
     return output_update
 
@@ -267,6 +269,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
