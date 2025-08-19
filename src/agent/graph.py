@@ -6,7 +6,7 @@ from typing import Any, Literal, Optional, Union, cast
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.runnables import RunnableConfig
-from langgraph import END, START, StateGraph
+from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 from tavily import AsyncTavilyClient
 
@@ -258,6 +258,7 @@ graph = builder.compile()
 
 # Export as 'app' for LangGraph platform deployment
 app = graph
+
 
 
 
