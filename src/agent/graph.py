@@ -189,7 +189,7 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
 
     # Parse the reflection response to extract structured information
     # This is a simplified parser - in production you might want more robust parsing
-    extracted_info = {}
+    extracted_info: dict[str, Any] = {}
     needs_more_research = True
     reasoning = ""
 
@@ -301,5 +301,6 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
