@@ -1,8 +1,9 @@
-from dataclasses import dataclass, field
-from typing import Any, Optional, Annotated
 import operator
+from dataclasses import dataclass, field
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel
+
 
 class Person(BaseModel):
     """A class representing a person to research."""

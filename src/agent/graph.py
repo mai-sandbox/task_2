@@ -1,22 +1,22 @@
 import asyncio
-from typing import cast, Any, Literal
 import json
+from typing import Any, Literal, cast
 
-from tavily import AsyncTavilyClient
 from langchain_anthropic import ChatAnthropic
 from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph.graph import START, END, StateGraph
+from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
-from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
 from agent.prompts import (
-    REFLECTION_PROMPT,
     INFO_PROMPT,
     QUERY_WRITER_PROMPT,
+    REFLECTION_PROMPT,
 )
+from agent.state import InputState, OutputState, OverallState
+from agent.utils import deduplicate_and_format_sources
 
 # LLMs
 
@@ -125,7 +125,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -171,7 +170,6 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
     2. Uses the REFLECTION_PROMPT to analyze them against the extraction schema
     3. Returns a structured assessment with a decision on whether to continue or conclude
     """
-    
     # Get the structured LLM for reflection output
     structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionOutput)
     
