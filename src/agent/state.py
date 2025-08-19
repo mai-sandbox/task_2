@@ -55,3 +55,24 @@ class OverallState:
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
 
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state represents the final result after reflection and evaluation."""
+
+    structured_info: dict[str, Any]
+    "Structured information extracted from research notes matching the extraction schema"
+
+    completeness_score: float
+    "Score from 0-1 indicating how complete the extracted information is"
+
+    missing_information: list[str]
+    "List of information categories that are missing or incomplete"
+
+    should_continue: bool
+    "Boolean indicating whether additional research should be conducted"
+
+    reasoning: str
+    "Explanation for the completeness assessment and decision to continue or finish"
+
+
