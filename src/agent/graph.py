@@ -44,6 +44,8 @@ def get_tavily_client():
 
 
 class Queries(BaseModel):
+    """Model for structured search query output."""
+    
     queries: list[str] = Field(
         description="List of search queries.",
     )
@@ -246,6 +248,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
