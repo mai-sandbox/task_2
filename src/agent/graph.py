@@ -130,6 +130,92 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+class ReflectionDecision(BaseModel):
+    """Structured output for reflection decision."""
+    
+    structured_info: PersonInfo = Field(
+        description="Extracted structured information about the person"
+    )
+    reflection_result: ReflectionResult = Field(
+        description="Evaluation of research completeness and decision"
+    )
+    should_continue: Literal["continue", "end"] = Field(
+        description="Decision whether to continue research or end"
+    )
+
+
+def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on the research quality and decide whether to continue or end.
+    
+    This function:
+    1. Formats all completed research notes
+    2. Uses structured output to extract information and evaluate completeness
+    3. Decides whether to continue research or end based on quality criteria
+    4. Returns the decision for conditional routing
+    """
+    
+    # Format all research notes
+    formatted_notes = format_all_notes(state.completed_notes)
+    
+    # Format person details for the prompt
+    person_details = {
+        "email": state.person.email,
+        "name": state.person.name,
+        "company": state.person.company,
+        "role": state.person.role,
+        "linkedin": state.person.linkedin,
+    }
+    # Remove None values
+    person_details = {k: v for k, v in person_details.items() if v is not None}
+    
+    # Count research iterations (based on number of completed notes)
+    research_iterations = len(state.completed_notes)
+    
+    # Create structured LLM for reflection
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionDecision)
+    
+    # Format the reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        research_notes=formatted_notes,
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
+        person_details=json.dumps(person_details, indent=2)
+    )
+    
+    # Get structured reflection decision
+    decision = cast(
+        ReflectionDecision,
+        structured_llm.invoke(
+            [
+                {
+                    "role": "system",
+                    "content": f"You are evaluating research quality. This is research iteration {research_iterations}.",
+                },
+                {
+                    "role": "user",
+                    "content": reflection_prompt,
+                },
+            ]
+        ),
+    )
+    
+    # Prepare the state update
+    state_update = {
+        "structured_info": decision.structured_info,
+        "reflection_result": decision.reflection_result,
+        "research_iterations": research_iterations,
+        "should_continue": decision.should_continue,
+    }
+    
+    # If we should continue and haven't exceeded max iterations (3), prepare for another round
+    if decision.should_continue == "continue" and research_iterations < 3:
+        # Add suggestions to user notes for the next iteration
+        if decision.reflection_result.additional_search_suggestions:
+            suggestions = "\n".join(decision.reflection_result.additional_search_suggestions)
+            state_update["user_notes"] = f"{state.user_notes}\n\nAdditional search focus:\n{suggestions}"
+    
+    return state_update
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -146,4 +232,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
