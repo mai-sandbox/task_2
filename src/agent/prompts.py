@@ -94,4 +94,3 @@ Please respond with a JSON object containing exactly these fields:
 ```
 
 Focus on accuracy and be honest about what information is missing. Only mark satisfaction as "high" if you have comprehensive information for all key fields."""
-

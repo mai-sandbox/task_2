@@ -31,6 +31,7 @@ claude_3_5_sonnet = ChatAnthropic(
 
 # Search
 
+
 def get_tavily_client():
     """Get Tavily client with lazy initialization."""
     return AsyncTavilyClient()
@@ -40,7 +41,6 @@ class Queries(BaseModel):
     queries: list[str] = Field(
         description="List of search queries.",
     )
-
 
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
@@ -89,7 +89,9 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     return {"search_queries": query_list}
 
 
-async def research_person(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+async def research_person(
+    state: OverallState, config: RunnableConfig
+) -> dict[str, Any]:
     """Execute a multi-step web search and information extraction process.
 
     This function performs the following steps:
@@ -136,14 +138,14 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
 async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Reflect on completed research notes and determine if additional research is needed.
-    
+
     This function:
     1. Converts research notes to structured format based on extraction schema
     2. Evaluates completeness of the research
     3. Determines whether additional research is needed
     4. Provides reasoning for the decision
     """
-    
+
     # Format person information
     person_str = f"Email: {state.person.email}"
     if state.person.name:
@@ -154,17 +156,22 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
         person_str += f", Role: {state.person.role}"
     if state.person.company:
         person_str += f", Company: {state.person.company}"
-    
+
     # Format completed notes
-    notes_str = "\n\n".join([f"Research Note {i+1}:\n{note}" for i, note in enumerate(state.completed_notes)])
-    
+    notes_str = "\n\n".join(
+        [
+            f"Research Note {i + 1}:\n{note}"
+            for i, note in enumerate(state.completed_notes)
+        ]
+    )
+
     # Create reflection prompt
     reflection_prompt = REFLECTION_PROMPT.format(
         person=person_str,
         completed_notes=notes_str,
-        extraction_schema=json.dumps(state.extraction_schema, indent=2)
+        extraction_schema=json.dumps(state.extraction_schema, indent=2),
     )
-    
+
     # Get structured reflection from LLM
     structured_llm = claude_3_5_sonnet.with_structured_output(
         schema={
@@ -176,40 +183,68 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
                         "years_of_experience": {"type": "string"},
                         "current_company": {"type": "string"},
                         "current_role": {"type": "string"},
-                        "prior_companies": {"type": "string"}
+                        "prior_companies": {"type": "string"},
                     },
-                    "required": ["years_of_experience", "current_company", "current_role", "prior_companies"]
+                    "required": [
+                        "years_of_experience",
+                        "current_company",
+                        "current_role",
+                        "prior_companies",
+                    ],
                 },
                 "research_satisfaction_assessment": {
                     "type": "object",
                     "properties": {
-                        "satisfaction_level": {"type": "string", "enum": ["high", "medium", "low"]},
-                        "information_found": {"type": "array", "items": {"type": "string"}},
-                        "missing_information": {"type": "array", "items": {"type": "string"}},
+                        "satisfaction_level": {
+                            "type": "string",
+                            "enum": ["high", "medium", "low"],
+                        },
+                        "information_found": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "missing_information": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
                         "additional_search_needed": {"type": "boolean"},
                         "reasoning": {"type": "string"},
-                        "suggested_search_queries": {"type": "array", "items": {"type": "string"}}
+                        "suggested_search_queries": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
                     },
-                    "required": ["satisfaction_level", "information_found", "missing_information", 
-                               "additional_search_needed", "reasoning", "suggested_search_queries"]
-                }
+                    "required": [
+                        "satisfaction_level",
+                        "information_found",
+                        "missing_information",
+                        "additional_search_needed",
+                        "reasoning",
+                        "suggested_search_queries",
+                    ],
+                },
             },
-            "required": ["structured_research_results", "research_satisfaction_assessment"]
+            "required": [
+                "structured_research_results",
+                "research_satisfaction_assessment",
+            ],
         }
     )
-    
+
     # Execute reflection
     reflection_result = await structured_llm.ainvoke(reflection_prompt)
-    
+
     return {
         "structured_research_results": reflection_result["structured_research_results"],
-        "research_satisfaction_assessment": reflection_result["research_satisfaction_assessment"]
+        "research_satisfaction_assessment": reflection_result[
+            "research_satisfaction_assessment"
+        ],
     }
 
 
 def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
     """Conditional routing function to determine if additional research is needed.
-    
+
     Based on the reflection assessment, decides whether to:
     - Continue research by generating new queries
     - End the process with current results
@@ -217,14 +252,17 @@ def should_continue_research(state: OverallState) -> Literal["generate_queries",
     if not state.research_satisfaction_assessment:
         # If no assessment exists, end the process (safety fallback)
         return "END"
-    
+
     # Check if additional research is needed based on reflection assessment
-    additional_search_needed = state.research_satisfaction_assessment.get("additional_search_needed", False)
-    
+    additional_search_needed = state.research_satisfaction_assessment.get(
+        "additional_search_needed", False
+    )
+
     if additional_search_needed:
         return "generate_queries"
     else:
         return "END"
+
 
 # Add nodes and edges
 builder = StateGraph(
@@ -247,16 +285,9 @@ builder.add_conditional_edges(
     should_continue_research,
     {
         "generate_queries": "generate_queries",  # Loop back for additional research
-        "END": END  # Terminate the process
-    }
+        "END": END,  # Terminate the process
+    },
 )
 
 # Compile
 graph = builder.compile()
-
-
-
-
-
-
-
