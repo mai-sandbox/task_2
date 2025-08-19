@@ -1,3 +1,6 @@
+"""Utility functions for the people research agent."""
+
+
 def deduplicate_and_format_sources(
     search_response, max_tokens_per_source, include_raw_content=True
 ):
@@ -68,3 +71,4 @@ People {idx}:
 Notes from research:
 {people_notes}"""
     return formatted_str
+
