@@ -31,7 +31,9 @@ claude_3_5_sonnet = ChatAnthropic(
 
 # Search
 
-tavily_async_client = AsyncTavilyClient()
+def get_tavily_client():
+    """Get Tavily client instance (lazy initialization)."""
+    return AsyncTavilyClient()
 
 
 class Queries(BaseModel):
@@ -269,6 +271,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
