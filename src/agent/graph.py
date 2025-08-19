@@ -203,6 +203,26 @@ async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, A
         "research_satisfaction_assessment": reflection_result["research_satisfaction_assessment"]
     }
 
+
+def should_continue_research(state: OverallState) -> Literal["generate_queries", "END"]:
+    """Conditional routing function to determine if additional research is needed.
+    
+    Based on the reflection assessment, decides whether to:
+    - Continue research by generating new queries
+    - End the process with current results
+    """
+    if not state.research_satisfaction_assessment:
+        # If no assessment exists, end the process (safety fallback)
+        return "END"
+    
+    # Check if additional research is needed based on reflection assessment
+    additional_search_needed = state.research_satisfaction_assessment.get("additional_search_needed", False)
+    
+    if additional_search_needed:
+        return "generate_queries"
+    else:
+        return "END"
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -219,4 +239,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
