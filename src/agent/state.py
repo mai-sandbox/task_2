@@ -1,3 +1,9 @@
+"""State management module for the people research agent.
+
+This module defines the state classes used throughout the research workflow,
+including input/output states and the overall state that tracks research progress.
+"""
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Optional
@@ -120,6 +126,7 @@ class OutputState:
     
     missing_information: list[str] = field(default_factory=list)
     "List of key information areas that could not be found or verified."
+
 
 
 
