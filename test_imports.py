@@ -25,6 +25,11 @@ try:
     print("✅ Utils imported successfully")
     
     # Test graph import (this will test all dependencies)
+    # Set dummy environment variables to avoid API key errors
+    import os
+    os.environ.setdefault('ANTHROPIC_API_KEY', 'dummy-key')
+    os.environ.setdefault('TAVILY_API_KEY', 'dummy-key')
+    
     from agent.graph import graph, generate_queries, research_person, reflection
     print("✅ Graph and all functions imported successfully")
     
@@ -36,3 +41,4 @@ except ImportError as e:
 except Exception as e:
     print(f"❌ Unexpected error: {e}")
     sys.exit(1)
+
