@@ -59,3 +59,45 @@ class OverallState:
     "Schema defining the information we want to extract about the person"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final structured research results."""
+    
+    person: Person
+    "The person that was researched."
+    
+    years_of_experience: Optional[str] = field(default=None)
+    "Total years of professional work experience extracted from research."
+    
+    current_company: Optional[str] = field(default=None)
+    "Current company or organization the person works at."
+    
+    current_role: Optional[str] = field(default=None)
+    "Current job title or position."
+    
+    prior_companies: list[str] = field(default_factory=list)
+    "List of previous companies or organizations worked at."
+    
+    education: Optional[str] = field(default=None)
+    "Educational background and qualifications."
+    
+    skills: list[str] = field(default_factory=list)
+    "Key professional skills and competencies."
+    
+    achievements: list[str] = field(default_factory=list)
+    "Notable accomplishments or awards."
+    
+    research_satisfaction: str = field(default="incomplete")
+    "Assessment of research completeness: 'satisfied', 'needs_more_research', or 'incomplete'."
+    
+    missing_information: list[str] = field(default_factory=list)
+    "List of information categories that are still missing or incomplete."
+    
+    reasoning: Optional[str] = field(default=None)
+    "Detailed reasoning for the satisfaction assessment and any decisions made."
+    
+    completed_notes: list[str] = field(default_factory=list)
+    "All research notes collected during the process."
+
+
+
