@@ -1,3 +1,5 @@
+"""Prompt templates for the people research agent."""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -97,4 +99,5 @@ Provide your evaluation with:
 5. Specific search suggestions if research should continue
 
 Remember: Be strict about information quality - vague mentions or assumptions don't count as complete information."""
+
 
