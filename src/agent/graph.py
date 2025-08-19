@@ -51,15 +51,15 @@ def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, A
     structured_llm = claude_3_5_sonnet.with_structured_output(Queries)
 
     # Format system instructions
-    person_str = f"Email: {state.person['email']}"
-    if "name" in state.person:
-        person_str += f" Name: {state.person['name']}"
-    if "linkedin" in state.person:
-        person_str += f" LinkedIn URL: {state.person['linkedin']}"
-    if "role" in state.person:
-        person_str += f" Role: {state.person['role']}"
-    if "company" in state.person:
-        person_str += f" Company: {state.person['company']}"
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f" Name: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f" LinkedIn URL: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f" Role: {state.person.role}"
+    if state.person.company:
+        person_str += f" Company: {state.person.company}"
 
     query_instructions = QUERY_WRITER_PROMPT.format(
         person=person_str,
@@ -146,3 +146,4 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
