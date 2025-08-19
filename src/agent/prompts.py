@@ -104,4 +104,3 @@ Remember:
 - After 3-4 iterations, complete the research even if some minor details are missing
 - Extract whatever information IS available, even if incomplete
 - If the person's LinkedIn URL was provided and scraped, that usually contains the most comprehensive information"""
-
