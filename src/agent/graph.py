@@ -40,6 +40,44 @@ class Queries(BaseModel):
     )
 
 
+class ReflectionResult(BaseModel):
+    """Structured output for reflection evaluation."""
+    
+    years_experience: Optional[int] = Field(
+        default=None,
+        description="Extracted years of professional experience"
+    )
+    current_company: Optional[str] = Field(
+        default=None,
+        description="Extracted current company name"
+    )
+    role: Optional[str] = Field(
+        default=None,
+        description="Extracted current role or job title"
+    )
+    prior_companies: list[str] = Field(
+        default_factory=list,
+        description="List of previous companies"
+    )
+    missing_information: list[str] = Field(
+        default_factory=list,
+        description="List of missing key information"
+    )
+    quality_assessment: Literal["complete", "partial", "insufficient"] = Field(
+        description="Overall quality of the research"
+    )
+    additional_search_suggestions: list[str] = Field(
+        default_factory=list,
+        description="Suggested search queries for missing information"
+    )
+    decision: Literal["continue", "complete"] = Field(
+        description="Whether to continue researching or complete the task"
+    )
+    reasoning: str = Field(
+        description="Explanation for the decision"
+    )
+
+
 
 def generate_queries(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
     """Generate search queries based on the user input and extraction schema."""
@@ -146,4 +184,5 @@ builder.add_edge("generate_queries", "research_person")
 
 # Compile
 graph = builder.compile()
+
 
