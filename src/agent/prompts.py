@@ -1,3 +1,10 @@
+"""Prompt templates for the people research agent workflow.
+
+This module contains all the prompt templates used by the LLM components in the
+people research workflow, including query generation, information extraction,
+and reflection analysis prompts.
+"""
+
 QUERY_WRITER_PROMPT = """You are a search query generator tasked with creating targeted search queries to gather specific information about a person.
 
 Here is the person you are researching: {person}
@@ -101,3 +108,4 @@ Guidelines:
 3. Consider the completeness and reliability of the information found
 4. Recommend more research if key information is missing or if there are inconsistencies
 5. Focus on professional work experience, current employment, and career history"""
+
