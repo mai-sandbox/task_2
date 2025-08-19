@@ -1,3 +1,10 @@
+"""State management classes for the people research agent workflow.
+
+This module defines the state classes used throughout the LangGraph workflow,
+including input/output states, overall workflow state, and person data models.
+The state classes manage data flow between workflow nodes and track research progress.
+"""
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Optional
@@ -92,3 +99,4 @@ class OutputState:
 
     missing_information: Optional[list[str]] = field(default=None)
     "List of information that could not be found or needs verification"
+
