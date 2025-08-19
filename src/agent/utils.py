@@ -4,6 +4,11 @@ This module contains helper functions for processing search results,
 formatting data, and other utility operations used throughout the research workflow.
 """
 
+import logging
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
+
 
 def deduplicate_and_format_sources(
     search_response, max_tokens_per_source, include_raw_content=True
@@ -76,6 +81,7 @@ People {idx}:
 Notes from research:
 {people_notes}"""
     return formatted_str
+
 
 
 
