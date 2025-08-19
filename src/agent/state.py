@@ -99,5 +99,9 @@ class OverallState:
     
     satisfaction_score: float = field(default=0.0)
     "Score from 0-1 indicating how satisfied we are with the completeness of information"
+    
+    decision: Optional[str] = field(default=None)
+    "Decision from reflection: 'continue' to research more or 'complete' to finish"
+
 
 
