@@ -48,3 +48,27 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are evaluating research notes about a person to determine if the information is sufficient and well-structured.
+
+Person being researched: {person}
+
+Research notes collected:
+{notes}
+
+Target information schema:
+{schema}
+
+Your task is to:
+1. Extract and structure the available information according to the schema
+2. Evaluate whether the information is satisfactory for the key fields:
+   - Years of experience (approximate if not exact)
+   - Current company and role
+   - Prior companies worked at
+3. Identify any critical missing information
+4. Determine if additional searches are needed
+5. If more searches are needed, suggest specific search queries
+
+Focus especially on work experience information - this is the most important aspect.
+
+Please provide a thorough analysis and clear reasoning for your decision on whether to conduct additional searches."""
