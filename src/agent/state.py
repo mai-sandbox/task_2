@@ -46,3 +46,15 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
+    extraction_schema: dict[str, Any] = field(default_factory=lambda: {
+        "years_of_experience": "Total years of professional experience",
+        "current_company": "Name of the current employer/company",
+        "current_role": "Current job title or position",
+        "prior_companies": "List of previous companies worked at with roles and duration if available",
+        "education": "Educational background including degrees and institutions",
+        "skills": "Key technical and professional skills",
+        "notable_achievements": "Significant accomplishments, projects, or recognition"
+    })
+    "Schema defining the structured format for extracting person information"
+
