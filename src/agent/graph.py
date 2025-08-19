@@ -261,9 +261,22 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+
+# Add conditional edge from reflection node
+# This creates the feedback loop: reflection can either go back to research_person or end
+builder.add_conditional_edges(
+    "reflection",
+    route_reflection,
+    {
+        "research_person": "research_person",
+        "__end__": END,
+    }
+)
 
 # Compile
 graph = builder.compile()
+
 
 
 
