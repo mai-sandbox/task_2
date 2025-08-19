@@ -1,3 +1,5 @@
+"""State module for the people research agent."""
+
 import operator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, List, Optional
@@ -100,6 +102,7 @@ class OutputState:
     
     research_notes: str = field(default="")
     "Consolidated research notes from all searches"
+
 
 
 
