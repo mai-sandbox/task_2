@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "people_researcher": "./src/agent/graph.py:graph"
+  },
+  "env": ".env"
+}

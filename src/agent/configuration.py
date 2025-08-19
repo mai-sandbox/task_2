@@ -1,3 +1,5 @@
+"""Configuration management for the people researcher agent."""
+
 import os
 from dataclasses import dataclass, fields
 from typing import Any, Optional

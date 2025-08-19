@@ -1,22 +1,22 @@
-import asyncio
-from typing import cast, Any, Literal
-import json
+"""People researcher agent with reflection capabilities."""
 
-from tavily import AsyncTavilyClient
+import asyncio
+import json
+import re
+from typing import Any, cast
+
 from langchain_anthropic import ChatAnthropic
-from langchain_core import InMemoryRateLimiter
+from langchain_core.rate_limiters import InMemoryRateLimiter
 from langchain_core.runnables import RunnableConfig
-from langgraph import START, END, StateGraph
+from langgraph.constants import START, END
+from langgraph.graph import StateGraph
 from pydantic import BaseModel, Field
+from tavily import AsyncTavilyClient
 
 from agent.configuration import Configuration
+from agent.prompts import INFO_PROMPT, QUERY_WRITER_PROMPT, REFLECTION_PROMPT
 from agent.state import InputState, OutputState, OverallState
-from agent.utils import deduplicate_and_format_sources, format_all_notes
-from agent.prompts import (
-    REFLECTION_PROMPT,
-    INFO_PROMPT,
-    QUERY_WRITER_PROMPT,
-)
+from agent.utils import deduplicate_and_format_sources
 
 # LLMs
 
@@ -35,8 +35,23 @@ tavily_async_client = AsyncTavilyClient()
 
 
 class Queries(BaseModel):
+    """Pydantic model for structured query generation."""
+    
     queries: list[str] = Field(
         description="List of search queries.",
+    )
+
+
+class ReflectionResult(BaseModel):
+    """Structured result from reflection analysis."""
+    structured_data: dict[str, Any] = Field(
+        description="Extracted and structured information about the person"
+    )
+    assessment: dict[str, Any] = Field(
+        description="Quality assessment including completeness and confidence scores"
+    )
+    recommendations: dict[str, Any] = Field(
+        description="Recommendations for next steps including whether more research is needed"
     )
 
 
@@ -94,7 +109,6 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     1. Executes concurrent web searches using the Tavily API
     2. Deduplicates and formats the search results
     """
-
     # Get configuration
     configurable = Configuration.from_runnable_config(config)
     max_search_results = configurable.max_search_results
@@ -130,6 +144,83 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
     result = await claude_3_5_sonnet.ainvoke(p)
     return {"completed_notes": [str(result.content)]}
 
+
+async def reflection(state: OverallState, config: RunnableConfig) -> dict[str, Any]:
+    """Reflect on collected notes and structure the information."""
+    # Format person information
+    person_str = f"Email: {state.person.email}"
+    if state.person.name:
+        person_str += f" Name: {state.person.name}"
+    if state.person.linkedin:
+        person_str += f" LinkedIn URL: {state.person.linkedin}"
+    if state.person.role:
+        person_str += f" Role: {state.person.role}"
+    if state.person.company:
+        person_str += f" Company: {state.person.company}"
+    
+    # Combine all notes
+    all_notes = "\n\n".join(state.completed_notes)
+    
+    # Create reflection prompt
+    reflection_prompt = REFLECTION_PROMPT.format(
+        person=person_str,
+        notes=all_notes,
+        schema=json.dumps(state.extraction_schema, indent=2)
+    )
+    
+    # Get structured reflection from LLM
+    structured_llm = claude_3_5_sonnet.with_structured_output(ReflectionResult)
+    
+    try:
+        result = cast(
+            ReflectionResult,
+            await structured_llm.ainvoke([
+                {"role": "system", "content": reflection_prompt},
+                {"role": "user", "content": "Please analyze the research notes and provide your structured assessment."}
+            ])
+        )
+        
+        # Convert to dict for state
+        reflection_dict = {
+            "structured_data": result.structured_data,
+            "assessment": result.assessment,
+            "recommendations": result.recommendations
+        }
+        
+        return {
+            "reflection_result": reflection_dict,
+            "needs_more_research": result.recommendations["needs_more_research"]
+        }
+        
+    except Exception:
+        # Fallback if structured output fails
+        result = await claude_3_5_sonnet.ainvoke([
+            {"role": "system", "content": reflection_prompt},
+            {"role": "user", "content": "Please analyze the research notes and provide your structured assessment."}
+        ])
+        
+        # Try to parse JSON from content
+        try:
+            json_match = re.search(r'\{.*\}', str(result.content), re.DOTALL)
+            if json_match:
+                reflection_dict = json.loads(json_match.group())
+                return {
+                    "reflection_result": reflection_dict,
+                    "needs_more_research": reflection_dict.get("recommendations", {}).get("needs_more_research", False)
+                }
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        
+        # Ultimate fallback
+        return {
+            "reflection_result": {
+                "structured_data": {},
+                "assessment": {"completeness_score": 0.0, "confidence_score": 0.0},
+                "recommendations": {"needs_more_research": True, "reasoning": "Failed to parse reflection"}
+            },
+            "needs_more_research": True
+        }
+
 # Add nodes and edges
 builder = StateGraph(
     OverallState,
@@ -143,6 +234,8 @@ builder.add_node("reflection", reflection)
 
 builder.add_edge(START, "generate_queries")
 builder.add_edge("generate_queries", "research_person")
+builder.add_edge("research_person", "reflection")
+builder.add_edge("reflection", END)
 
 # Compile
 graph = builder.compile()
