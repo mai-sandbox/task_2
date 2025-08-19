@@ -159,9 +159,10 @@ async def research_person(state: OverallState, config: RunnableConfig) -> dict[s
 
     # Web search
     search_tasks = []
+    client = get_tavily_client()
     for query in state.search_queries:
         search_tasks.append(
-            tavily_async_client.search(
+            client.search(
                 query,
                 days=360,
                 max_results=max_search_results,
@@ -294,6 +295,7 @@ builder.add_conditional_edges(
 
 # Compile
 graph = builder.compile()
+
 
 
 
