@@ -1,0 +1,16 @@
+{
+  "dependencies": [
+    ".",
+    "langchain-anthropic",
+    "langchain-community",
+    "tavily-python",
+    "langgraph>=0.2.52"
+  ],
+  "graphs": {
+    "people_researcher": "./src/agent/graph.py:app"
+  },
+  "env": ".env",
+  "python_version": "3.11",
+  "pip_config_file": null,
+  "dockerfile_lines": []
+}
