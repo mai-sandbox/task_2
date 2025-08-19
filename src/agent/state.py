@@ -65,3 +65,30 @@ class OverallState:
     "Reasoning for whether to continue research or not"
 
 
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the structured information returned to the user."""
+
+    years_of_experience: Optional[int] = field(default=None)
+    "Total years of professional work experience"
+
+    current_company: Optional[str] = field(default=None)
+    "Current employer/company name"
+
+    current_role: Optional[str] = field(default=None)
+    "Current job title/position"
+
+    prior_companies: Optional[list[dict[str, Any]]] = field(default=None)
+    "List of previous companies with details like company name, role, and duration"
+
+    research_summary: Optional[str] = field(default=None)
+    "Summary of the research findings"
+
+    confidence_score: Optional[float] = field(default=None)
+    "Confidence score (0-1) indicating how complete the information is"
+
+    missing_information: Optional[list[str]] = field(default=None)
+    "List of information that could not be found or needs verification"
+
+
+
