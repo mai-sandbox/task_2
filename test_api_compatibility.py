@@ -100,11 +100,35 @@ def test_api_compatibility():
         from agent.state import InputState, OutputState, OverallState
         print("   ✓ State classes imported successfully")
         
-        # Verify OverallState inherits from both InputState and OutputState
-        if issubclass(OverallState, InputState) and issubclass(OverallState, OutputState):
-            print("   ✓ OverallState properly inherits from InputState and OutputState")
+        # Verify state classes are properly defined as dataclasses
+        import dataclasses
+        if dataclasses.is_dataclass(InputState):
+            print("   ✓ InputState is a dataclass")
         else:
-            print("   ✗ OverallState inheritance issue")
+            print("   ✗ InputState is not a dataclass")
+            return False
+            
+        if dataclasses.is_dataclass(OutputState):
+            print("   ✓ OutputState is a dataclass")
+        else:
+            print("   ✗ OutputState is not a dataclass")
+            return False
+            
+        if dataclasses.is_dataclass(OverallState):
+            print("   ✓ OverallState is a dataclass")
+        else:
+            print("   ✗ OverallState is not a dataclass")
+            return False
+            
+        # Verify OverallState has all required fields
+        overall_fields = {f.name for f in dataclasses.fields(OverallState)}
+        required_fields = {'person', 'user_notes', 'search_queries', 'completed_notes', 
+                          'extraction_schema', 'extracted_info', 'reflection_decision'}
+        if required_fields.issubset(overall_fields):
+            print("   ✓ OverallState has all required fields")
+        else:
+            missing = required_fields - overall_fields
+            print(f"   ✗ OverallState missing fields: {missing}")
             return False
     except Exception as e:
         print(f"   ✗ Error with state classes: {e}")
@@ -118,3 +142,4 @@ def test_api_compatibility():
 if __name__ == "__main__":
     success = test_api_compatibility()
     sys.exit(0 if success else 1)
+
