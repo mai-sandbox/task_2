@@ -48,3 +48,42 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research quality evaluator. Your task is to assess whether the research notes contain sufficient information about a person's professional background.
+
+You are researching: {person}
+
+Here are the research notes collected so far:
+<research_notes>
+{notes}
+</research_notes>
+
+You need to evaluate whether the following key information has been adequately captured:
+
+<required_information>
+1. **Years of Experience**: Total years of professional experience (can be calculated from career history)
+2. **Current Company**: The company where the person currently works
+3. **Current Role**: The person's current job title or position
+4. **Prior Companies**: List of previous companies where the person has worked
+</required_information>
+
+Please analyze the research notes and provide:
+
+1. **Extracted Information**: What specific information was found for each required field
+2. **Missing Information**: What key information is still missing or unclear
+3. **Quality Assessment**: Rate the completeness of the research (complete/partial/insufficient)
+4. **Additional Search Suggestions**: If information is missing, suggest specific search queries that could help
+5. **Decision**: Should we continue researching or is the current information sufficient?
+
+Consider the research COMPLETE if:
+- Current company and role are clearly identified
+- At least some career history is available (even if not exhaustive)
+- There's enough context to understand their professional background
+
+Consider the research INCOMPLETE if:
+- Current employment status is unclear
+- No career history information is available
+- The notes are too vague or contradictory
+
+Base your decision on whether a reasonable professional summary can be created from the available information, not on having every possible detail."""
+
