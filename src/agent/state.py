@@ -46,3 +46,29 @@ class OverallState:
     # Add default values for required fields
     completed_notes: Annotated[list, operator.add] = field(default_factory=list)
     "Notes from completed research related to the schema"
+
+    reflection_result: Optional[Any] = field(default=None)
+    "Structured reflection result containing extracted professional information"
+
+    search_iteration: int = field(default=0)
+    "Counter for search iterations to prevent infinite loops"
+
+    extraction_schema: Optional[dict[str, Any]] = field(default=None)
+    "Schema defining what information to extract about the person"
+
+
+@dataclass(kw_only=True)
+class OutputState:
+    """Output state defines the final result returned to the user."""
+
+    person: Person
+    "The researched person"
+
+    reflection_result: Optional[Any] = field(default=None)
+    "Final structured professional information about the person"
+
+    completed_notes: list[str] = field(default_factory=list)
+    "All research notes collected during the process"
+
+    total_iterations: int = field(default=0)
+    "Total number of search iterations performed"

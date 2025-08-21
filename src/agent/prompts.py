@@ -48,3 +48,26 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst reflecting on research notes about a person to extract structured information.
+
+Your task is to review the research notes and extract key professional information about the person in a structured format.
+
+<research_notes>
+{notes}
+</research_notes>
+
+Focus on extracting:
+1. Years of experience (total professional experience)
+2. Current company
+3. Current role/title
+4. Prior companies (list of previous employers)
+5. Any missing information that should be searched for
+
+After extracting this information, determine:
+- Is the information satisfactory and complete?
+- What important details are missing?
+- Should we conduct additional searches?
+- Provide reasoning for your decision
+
+Be specific about what's missing and what additional searches would help complete the profile."""
