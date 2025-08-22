@@ -1,0 +1,32 @@
+{
+  "candidate": "claude-code-vanilla",
+  "bucket": "code_quality",
+  "points": 6.5,
+  "max_points": 16,
+  "details": [
+    {
+      "key": "codebase_patterns_check",
+      "points": 0,
+      "passed": false,
+      "msg": "[LlmAsJudgeEvidence(issue='Missing max_reflection_steps configuration parameter that is present in expert code and required for proper reflection loop termination', severity='major'), LlmAsJudgeEvidence(issue='Hardcoded MAX_ITERATIONS = 3 in should_continue_research function instead of using configurable max_reflection_steps parameter', severity='major'), LlmAsJudgeEvidence(issue='Created new ReflectionResult class instead of extending existing OverallState dataclass as demonstrated in expert code', severity='minor'), LlmAsJudgeEvidence(issue='Missing extraction prompt and gather_notes_extract_schema node that properly extracts structured data using the extraction schema', severity='major'), LlmAsJudgeEvidence(issue=\"Final output state doesn't contain the structured 'info' field that matches the extraction schema as shown in expert code\", severity='major')]"
+    },
+    {
+      "key": "code_succinctness_check",
+      "points": 2.5,
+      "passed": false,
+      "msg": "[LlmAsJudgeEvidence(issue='Missing essential gather_notes_extract_schema node that extracts structured information according to the schema, forcing complex workarounds in reflection', severity='major'), LlmAsJudgeEvidence(issue='Hardcoded MAX_ITERATIONS constant violates flexibility and maintainability principles', severity='minor')]"
+    },
+    {
+      "key": "code_cleanliness_check",
+      "points": 4,
+      "passed": true,
+      "msg": "[]"
+    },
+    {
+      "key": "correctness_check",
+      "points": 0,
+      "passed": false,
+      "msg": "[LlmAsJudgeEvidence(issue=\"should_continue_research function doesn't accept config parameter, breaking the conditional edge function requirement for accessing configurable parameters\", severity='critical'), LlmAsJudgeEvidence(issue='Major domain deviation from company research to person research without justification, changing the fundamental task requirements', severity='critical'), LlmAsJudgeEvidence(issue='Missing proper reflection loop termination condition using max_reflection_steps from configuration', severity='major'), LlmAsJudgeEvidence(issue=\"OutputState missing required 'info' field containing structured research results as specified in expert code\", severity='major'), LlmAsJudgeEvidence(issue='Missing extraction step that converts notes to structured format matching the extraction schema', severity='major')]"
+    }
+  ]
+}

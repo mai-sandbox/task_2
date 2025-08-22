@@ -163,5 +163,3 @@ cython_debug/
 .DS_Store
 uv.lock
 .langgraph_api
-
-evals/
