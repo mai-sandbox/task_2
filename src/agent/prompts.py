@@ -48,3 +48,49 @@ Please provide detailed research notes that:
 5. Note when important information appears to be missing or unclear
 
 Remember: Don't try to format the output to match the schema - just take clear notes that capture all relevant information."""
+
+REFLECTION_PROMPT = """You are a research analyst tasked with evaluating and structuring research notes about a person.
+
+Here is the person you researched: {person}
+
+You have completed research and gathered the following notes:
+<research_notes>
+{completed_notes}
+</research_notes>
+
+Your task is to:
+
+1. **EXTRACT STRUCTURED INFORMATION**: Convert the research notes into a structured format based on this schema:
+<schema>
+{extraction_schema}
+</schema>
+
+2. **EVALUATE COMPLETENESS**: Assess whether the research is satisfactory by determining:
+   - What information was successfully found
+   - What key information is missing or unclear
+   - Whether the current information is sufficient for the research goals
+
+3. **MAKE CONTINUATION DECISION**: Decide whether additional research is needed and provide reasoning.
+
+Please respond with a JSON object containing exactly these fields:
+
+```json
+{{
+  "structured_research_results": {{
+    "years_of_experience": "extracted value or 'Not found'",
+    "current_company": "extracted value or 'Not found'", 
+    "current_role": "extracted value or 'Not found'",
+    "prior_companies": "extracted value or 'Not found'"
+  }},
+  "research_satisfaction_assessment": {{
+    "satisfaction_level": "high/medium/low",
+    "information_found": ["list of successfully found information"],
+    "missing_information": ["list of missing or unclear information"],
+    "additional_search_needed": true/false,
+    "reasoning": "detailed explanation of why additional research is or isn't needed",
+    "suggested_search_queries": ["list of suggested queries if additional research is needed, empty array if not"]
+  }}
+}}
+```
+
+Focus on accuracy and be honest about what information is missing. Only mark satisfaction as "high" if you have comprehensive information for all key fields."""
